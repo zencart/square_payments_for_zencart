@@ -1,8 +1,9 @@
 <?php
 /**
- * Square payment module
+ * Square payments module
+ * www.squareup.com
  *
- *
+ * Integrated using SquareConnect PHP SDK v2.0.2
  *
  * @package squareup
  * @copyright Copyright 2003-2017 Zen Cart Development Team
@@ -10,7 +11,7 @@
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
 /**
- * Square Payment module class
+ * Square Payments module class
  */
 class squareup extends base {
   /**
@@ -22,7 +23,7 @@ class squareup extends base {
   /**
    * $moduleVersion is the plugin version number
    */
-  var $moduleVersion = '0.20';
+  var $moduleVersion = '0.30';
   /**
    * $title is the displayed name for this payment method
    *
@@ -41,7 +42,6 @@ class squareup extends base {
    * @var boolean
    */
   var $enabled;
-
   /**
    * $sort_order determines the display-order of this module to customers
    */
@@ -58,11 +58,10 @@ class squareup extends base {
    * internal vars
    */
   private $avs_codes, $cvv_codes;
-    /**
-   * @var string the currency enabled in this gateway's merchant account
+  /**
+   * the primary currency enabled in this gateway's merchant account (only 1 is supported; all others are converted)
    */
   private $gateway_currency;
-
 
 
   /**
@@ -74,12 +73,18 @@ class squareup extends base {
     require DIR_FS_CATALOG . DIR_WS_CLASSES . 'vendors/square/connect/autoload.php';
 
     $this->code = 'squareup';
+    $this->enabled = ((MODULE_PAYMENT_SQUAREUP_STATUS == 'True') ? true : false);
+    $this->sort_order = MODULE_PAYMENT_SQUAREUP_SORT_ORDER;
     $this->title = MODULE_PAYMENT_SQUAREUP_TEXT_CATALOG_TITLE; // Payment module title in Catalog
+    $this->description = 'SquareUp ' . $this->moduleVersion . '<br>' . MODULE_PAYMENT_SQUAREUP_TEXT_DESCRIPTION;
     if (IS_ADMIN_FLAG === true) {
       $this->title = MODULE_PAYMENT_SQUAREUP_TEXT_ADMIN_TITLE;
       if (defined('MODULE_PAYMENT_SQUAREUP_STATUS')) {
         if (MODULE_PAYMENT_SQUAREUP_APPLICATION_ID == '') $this->title .= '<span class="alert"> (not configured; API details needed)</span>';
-        if (MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '') $this->title .= '<span class="alert"> (Live Token needed)</span>';
+        if (MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '') {
+            $this->title .= '<span class="alert"> (Access Token needed)</span>';
+            $this->description .= "\n".'<br><br>' . sprintf(MODULE_PAYMENT_SQUAREUP_TEXT_NEED_ACCESS_TOKEN, $this->getAuthorizeURL());
+        }
         if (MODULE_PAYMENT_SQUAREUP_TESTING_MODE == 'Sandbox') $this->title .= '<span class="alert"> (Sandbox mode)</span>';
         $new_version_details = plugin_version_check_for_updates(2071, $this->moduleVersion);
         if ($new_version_details !== false) {
@@ -87,10 +92,6 @@ class squareup extends base {
         }
       }
     }
-
-    $this->description = 'SquareUp ' . $this->moduleVersion . '<br>' . MODULE_PAYMENT_SQUAREUP_TEXT_DESCRIPTION;
-    $this->enabled = ((MODULE_PAYMENT_SQUAREUP_STATUS == 'True') ? true : false);
-    $this->sort_order = MODULE_PAYMENT_SQUAREUP_SORT_ORDER;
 
     // determine order-status for transactions
     if ((int)MODULE_PAYMENT_SQUAREUP_ORDER_STATUS_ID > 0) {
@@ -104,7 +105,7 @@ class squareup extends base {
     $this->_logDir = DIR_FS_LOGS;
 
     // module can't work without a token; must be configured with OAUTH refreshable token
-    if (trim(MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN) == '') {
+    if ((MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '' || MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT == '') && MODULE_PAYMENT_SQUAREUP_TESTING_MODE == 'Live') {
         $this->enabled = false;
     }
 
@@ -142,6 +143,7 @@ class squareup extends base {
   function javascript_validation() {
     return '';
   }
+
   function selection() {  
     // helper for auto-selecting the radio-button next to this module so the user doesn't have to make that choice
     $onFocus = ' onfocus="methodSelect(\'pmt-' . $this->code . '\')"';
@@ -234,7 +236,7 @@ class squareup extends base {
       $payment_amount = number_format($order->info['total'] * $currencies->get_value($this->gateway_currency), 2);
       $currency_code = $this->gateway_currency;
       $currency_comment = '(Converted from: ' . number_format($order->info['total'] * $order->info['currency_value'], 2) . ' ' . $order->info['currency'] . ')';
-      // @TODO - if Square supports transmission of tax and shipping amounts, these may need recalculation here too
+      // @TODO - if Square adds support for transmission of tax and shipping amounts, these may need recalculation here too
     }
 
     $billing_address = array(
@@ -247,7 +249,7 @@ class squareup extends base {
         'last_name' => $order->billing['lastname'],
         'organization' => $order->billing['company'],
         );
-    if ($order->delivery !== false) {
+    if ($order->delivery !== false && isset($order->delivery['street_address'])) {
         $shipping_address = array(
             'address_line' => $order->delivery['street_address'],
             'address_line_2' => $order->delivery['suburb'],
@@ -261,35 +263,31 @@ class squareup extends base {
     }
 
     $request_body = array (
+      'idempotency_key' => uniqid(),
       'card_nonce' => $_POST[$this->code . '_nonce'],
       'amount_money' => array (
         'amount' => $this->convert_to_cents($payment_amount),
         'currency' => $currency_code,
       ),
       'delay_capture' => (bool)(MODULE_PAYMENT_SQUAREUP_TRANSACTION_TYPE === 'authorize'),
-      'reference_id' => strval(substr(zen_session_id(), 0, 40)), // 40 char max
+      'reference_id' => (string)(substr(zen_session_id(), 0, 40)), // 40 char max
       'integration_id' => 'sqi_' . 'b6ff0cd7acc14f7ab24200041d066ba6', // required 32 chars
       'note' => substr(htmlentities(trim($currency_comment . ' ' . STORE_NAME)), 0, 60), // 60 char max
       'customer_id' => $_SESSION['customer_id'],
       'buyer_email_address' => $order->customer['email_address'],
       'billing_address' => $billing_address,
-      'shipping_address' => $shipping_address,
-      'idempotency_key' => uniqid(),
     );
-
+    if (!empty($shipping_address)) {
+        $request_body['shipping_address'] = $shipping_address;
+    }
 
     $access_token = $this->getAccessToken();
-
-    // Use or lookup location id
     $location_id = $this->getLocationID($access_token);
-    
     $transaction_api = new \SquareConnect\Api\TransactionApi();
-    # The SDK throws an exception if a Connect endpoint responds with anything besides
-    # a 200-level HTTP code. This block catches any exceptions that occur from the request.
     try {
       if (MODULE_PAYMENT_SQUAREUP_TESTING_MODE != 'Live') unset($request_body['integration_id']);
       $result = $transaction_api->charge($access_token, $location_id, $request_body);
-      $errors_object = $result->getErrors(); // (getCode(), getDetail())
+      $errors_object = $result->getErrors();
       $transaction = $result->getTransaction();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
@@ -300,11 +298,10 @@ class squareup extends base {
     }
 
     // log the response data
-    $this->logTransactionData($transaction, $request_body, strval($errors_object));
+    $this->logTransactionData($transaction, $request_body, (string)$errors_object);
 
     // analyze the response
-
-    if (sizeof($errors_object)) {
+    if (count($errors_object)) {
         $msg = $this->parse_error_response($errors_object);
         $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUAREUP_TEXT_ERROR . ' [' . $msg . ']', 'error');
         zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
@@ -312,17 +309,17 @@ class squareup extends base {
 
     if (!empty($transaction->getId())) {
         $tenders = $transaction->getTenders();
-        $this->auth_code = $tenders[0]['id'];
+        $this->auth_code = $tenders[0]['id']; // since Square doesn't supply an auth code, we use the tender-id instead, since it is required for submitting refunds
         $this->transaction_id = $transaction->getId() . "\n" . $transaction->getCreatedAt();
         return true;
     }
 
-    // generic 'declined' message response
+    // if we get here, send a generic 'declined' message response
     $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUAREUP_ERROR_DECLINED, 'error');
     zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
   }
   /**
-   * Post-process activities. Updates the order-status history data with the auth code from the transaction.
+   * Update the order-status history data with the transaction id and tender id from the transaction.
    *
    * @return boolean
    */
@@ -340,7 +337,9 @@ class squareup extends base {
     return true;
   }
   /**
-    * Build admin-page components
+    * Prepare admin-page components
+    *
+    * @TODO - fetch original transaction details, live, and display here
     *
     * @param int $order_id
     * @return string
@@ -355,93 +354,209 @@ class squareup extends base {
   }
 
 
+// SIMPLIFIED OAUTH TOKENIZATION
+  function getAccessToken()
+  {
+    $this->token_refresh_check();
+    $access_token = (string)(MODULE_PAYMENT_SQUAREUP_TESTING_MODE == 'Live' ? MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN : MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN);
+    SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token);//->setDebug(MODULE_PAYMENT_SQUAREUP_TESTING_MODE != 'Live');
+    return $access_token;
+  }
 
+  function isTokenExpired($difference = '')
+  {
+    if (MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT == '') return true;
+    $expiry = new DateTime(MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT);  // formatted as '2016-08-10T19:42:08Z'
+
+    // to be useful, we have to allow time for a customer to checkout. Opting for 1 hour here.
+    if ($difference == '') $difference = '+1 hour';
+    $now = new DateTime($difference);
+
+    if ($expiry < $now) {
+        return true;
+    }
+    return false;
+  }
 
   // This should also be callable from a cron job
   function token_refresh_check() 
   {
-    // @TODO:
-    // - check that we have a token
-    // - check its expiry date
-    // - if expiry is less than 3 weeks away, refresh  (ie: refresh weekly)
-    // - if can't refresh, disable module by setting status to false, and emailing storeowner to alert them
+    if (MODULE_PAYMENT_SQUAREUP_APPLICATION_ID == '') return 'not configured';
+
+    $token = MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN;
+
+    // if we have no token, alert that we need to get one
+    if (trim($token) == '') {
+        if (IS_ADMIN_FLAG === true) {
+            global $messageStack;
+            $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUAREUP_TEXT_NEED_ACCESS_TOKEN, $this->getAuthorizeURL()), 'error');
+        }
+        $this->disableDueToInvalidAccessToken();
+        return 'failure';
+    }
+
+    // refreshes can't be done if the token has expired longer than 15 days.
+    if ($this->isTokenExpired('-15 days')) {
+        $this->disableDueToInvalidAccessToken();
+        return 'failure';       
+    }
+
+    // ideal refresh threshold is 3 weeks out
+    $refresh_threshold = new DateTime('+3 weeks');
+
+    // if expiry is less than (threshold) away, refresh  (ie: refresh weekly)
+    $expiry = new DateTime(MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT);
+    if ($expiry < $refresh_threshold) {
+        $result = $this->getRefreshToken();
+        if ($result) {
+            return 'refreshed';
+        } else {
+            return 'not refreshed';
+        }
+    }
+    return 'not expired';
   }
 
-  function getAuthorizeURL()
+  function disableDueToInvalidAccessToken()
   {
-    $url = 'https://connect.squareup.com/oauth2/authorize?';
-    $params = http_build_query(
-        array('client_id' => MODULE_PAYMENT_SQUAREUP_APPLICATION_ID, 
-              'scope' => 'MERCHANT_PROFILE_READ PAYMENTS_WRITE',
-              'state' => uniqid(),
-              ));
-    return $url . $params;
-  }
-
-  function getToken($code)
-  {
-    $url = 'https://connect.squareup.com/oauth2/token';
-    $data = json_encode(
-        array('client_id' => MODULE_PAYMENT_SQUAREUP_APPLICATION_ID, 
-              'client_secret' => MODULE_PAYMENT_SQUAREUP_APPLICATION_SECRET,
-              'code' => $code,
-              ));
-    // @TODO - send a POST
-
-    // @TODO - get reply:
-
-    $this->setAccessToken($response);
-
-  }
-
-  function setAccessToken($payload)
-  {
-/* 
-  "access_token": "YOUR_ACCESS_TOKEN",
-  "token_type": "bearer",
-  "expires_at": "2016-08-10T19:42:08Z",
-  "merchant_id": "YOUR_BUSINESS_ID"
-*/
-    // @TODO - store MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN and MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT
-
+    if (MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT == '' || MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '') return;
+    global $db;
+    $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = 'False' WHERE configuration_key = 'MODULE_PAYMENT_SQUAREUP_STATUS'");
+    $msg = "This is an alert from your Zen Cart store.\n\nYour Square Payment Module access-token has expired, or cannot be refreshed automatically. Please login to your store Admin, go to the Payment Module settings, click on the SquareUp module, and click the button to Re/Authorize your account.\n\nSquare Payments are disabled until a new valid token can be established.";
+    $msg .= "\n\n" . ' The token expired on ' . MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT;
+    zen_mail(STORE_OWNER_EMAIL_ADDRESS, STORE_OWNER_EMAIL_ADDRESS, 'SquareUp Payment Module Problem: Critical', $msg, STORE_NAME, EMAIL_FROM, array('EMAIL_MESSAGE_HTML'=>$msg), 'payment_module_error');
+    trigger_error('Square Payment Module token expired' . (MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT != '' ? ' on ' . MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT : '') . '. Payment module has been disabled. Please login to Admin and re-authorize the module.', E_USER_ERROR);
   }
 
   function getRefreshToken()
   {
     $url = 'https://connect.squareup.com/oauth2/clients/' . MODULE_PAYMENT_SQUAREUP_APPLICATION_ID . '/access-token/renew';
     $body = '{"access_token": "' . MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN . '"}';
-    // @TODO POST 
-    // $response = 
-    $this->setAccessToken($response);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 9);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 9);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Zen Cart token refresh [' . preg_replace('#https?://#', '', HTTP_SERVER) . '] ');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    $errno = curl_errno($ch);
+    curl_close($ch);
+
+    if ($error == 0) {
+        $this->setAccessToken($response);
+        return true;
+    } else {
+      error_log('Could not refresh Square token. Response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
+    }
+    return false;
   }
 
-  function getAccessToken()
+  function setAccessToken($json_payload)
   {
-    $this->token_refresh_check();
-    $access_token = strval(MODULE_PAYMENT_SQUAREUP_TESTING_MODE == 'Live' ? MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN : MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN);
-    SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token);//->setDebug(MODULE_PAYMENT_SQUAREUP_TESTING_MODE != 'Live');
-    return $access_token;
+    global $db;
+    $payload = json_decode($json_payload, true);
+    if (!isset($payload['access_token']) || $payload['access_token'] == '') return false;
+    $token = preg_replace('[^0-9A-Za-z\-]', '', $payload['access_token']);
+    $expires = preg_replace('[^0-9A-Za-z\-:]', '', $payload['expires_at']);
+    $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $token . "' WHERE configuration_key = 'MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN'");
+    $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '" . $expires . "' WHERE configuration_key = 'MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT'");
   }
 
-  function getLocationID($access_token)
+
+  function getAuthorizeURL()
   {
-    $location_id = trim(strval(MODULE_PAYMENT_SQUAREUP_LOCATION_ID));
+    $url = 'https://connect.squareup.com/oauth2/authorize?';
+    $params = http_build_query(
+        array('client_id' => MODULE_PAYMENT_SQUAREUP_APPLICATION_ID, 
+              'scope' => 'MERCHANT_PROFILE_READ PAYMENTS_WRITE PAYMENTS_READ',
+              'state' => uniqid(),
+              ));
+    return $url . $params;
+    // code=sq0abc-D1efG2HIJK345lmno6PqR78S9Tuv0WxY&response_type=code
+  }
+
+  function getToken($token_redeem_code)
+  {
+    $url = 'https://connect.squareup.com/oauth2/token';
+    $body = json_encode(
+        array('client_id' => MODULE_PAYMENT_SQUAREUP_APPLICATION_ID, 
+              'client_secret' => MODULE_PAYMENT_SQUAREUP_APPLICATION_SECRET,
+              'code' => $token_redeem_code,
+              ));
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 9);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 9);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Zen Cart token request [' . preg_replace('#https?://#', '', HTTP_SERVER) . '] ');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    $errno = curl_errno($ch);
+    curl_close($ch);
+//error_log('SQUAREUP TOKEN EXCHANGE response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
+
+    if ($error == 0) {
+        $this->setAccessToken($response);
+        echo 'Token set. You may now continue configuring the module. <script type="text/javascript">window.close()</script>';
+        return true;
+    } else {
+        trigger_error('Could not exchange Square code for a token. HTTP ' . $httpcode . '. Error ' . $errno . ': ' . $error, E_USER_ERROR);
+    }
+  }
+
+  function getLocationID($access_token = '')
+  {
+    $location_id = trim((string)MODULE_PAYMENT_SQUAREUP_LOCATION_ID);
+    if ($position = strpos($location_id, ':[')) $location_id = substr(trim($location_id, ']'), $position+2);
     if (empty($location_id)) {
-        $location_api = new SquareConnect\Api\LocationApi();
-        try {
-            $result = $location_api->listLocations($access_token);
-            $first_location = $result->getLocations()[0];
-            $location_id = $first_location->getId();
-            unset($result);
-        } catch (Exception $e) {
-            trigger_error('Exception when calling LocationApi->listLocations: ' . $e->getMessage(), E_USER_NOTICE);
-        }
+        $locations = $this->getLocationsList($access_token);
+        if ($locations == null) return '';
+        $first_location = $locations[0];
+        $location_id = $first_location->getId();
     }
     return $location_id;
   }
 
+  function getLocationsList($access_token = '')
+  {
+    if (MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '') return null;
+    if ($access_token == '') $access_token = $this->getAccessToken();
+    $location_api = new SquareConnect\Api\LocationApi();
+    try {
+        $result = $location_api->listLocations($access_token);
+        return $result->getLocations();
+    } catch (Exception $e) {
+        trigger_error('Exception when calling LocationApi->listLocations: ' . $e->getMessage(), E_USER_NOTICE);
+        return array();
+    }
+  }
+
+  function getLocationsPulldownArray()
+  {
+    $locations = $this->getLocationsList();
+    if (empty($locations)) return array();
+    $locations_pulldown = array();
+    foreach($locations as $key=>$value) {
+      $locations_pulldown[] = array('id' => $value->getName() . ' :[' . $value->getId() . ']', 'text' => $value->getName());
+    }
+    return $locations_pulldown;
+  }
+
 // format purchase amount
-// Monetary amounts are specified in the smallest unit of the applicable currency. This amount is in cents. 
+// Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD this amount is in cents.
   function convert_to_cents($amount)
   {
     global $currencies, $order;
@@ -466,9 +581,10 @@ class squareup extends base {
       $check_query = $db->Execute("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_SQUAREUP_STATUS'");
       $this->_check = $check_query->RecordCount();
     }
-    if ($this->_check > 0) $this->install(); // install any missing keys, if any
+    if ($this->_check > 0) $this->install(); // install any missing keys
     return $this->_check;
   }
+  /** Install required configuration keys */
   function install() {
     global $db;
 
@@ -480,13 +596,13 @@ class squareup extends base {
     if (!defined('MODULE_PAYMENT_SQUAREUP_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUAREUP_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
     if (!defined('MODULE_PAYMENT_SQUAREUP_APPLICATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application ID', 'MODULE_PAYMENT_SQUAREUP_APPLICATION_ID', 'sq0idp-', 'Enter the Application ID from your App settings', '6', '0',  now(), 'zen_cfg_password_display')");
     if (!defined('MODULE_PAYMENT_SQUAREUP_APPLICATION_SECRET')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application Secret (OAuth)', 'MODULE_PAYMENT_SQUAREUP_APPLICATION_SECRET', 'sq0csp-', 'Enter the Application Secret from your App OAuth settings', '6', '0',  now(), 'zen_cfg_password_display')");
-    if (!defined('MODULE_PAYMENT_SQUAREUP_LOCATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Location ID', 'MODULE_PAYMENT_SQUAREUP_LOCATION_ID', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_password_display')");
-    if (!defined('MODULE_PAYMENT_SQUAREUP_CURRENCY')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Currency Required', 'MODULE_PAYMENT_SQUAREUP_CURRENCY', 'USD', 'Which currency is your Square Account configured to accept?<br>(Purchases in any other currency will be pre-converted to this currency before submission using the exchange rates in your store admin.)', '6', '0', 'zen_cfg_select_option(array(\'USD\', \'CAD\', \'GBP\', \'EUR\', \'AUD\', \'NZD\'), ', now())");
+    if (!defined('MODULE_PAYMENT_SQUAREUP_LOCATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('Location ID', 'MODULE_PAYMENT_SQUAREUP_LOCATION_ID', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
+    if (!defined('MODULE_PAYMENT_SQUAREUP_CURRENCY')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Currency Required', 'MODULE_PAYMENT_SQUAREUP_CURRENCY', 'USD', 'Which currency is your Square Account configured to accept?<br>(Purchases in any other currency will be pre-converted to this currency before submission using the exchange rates in your store admin.)', '6', '0', 'zen_cfg_select_option(array(\'USD\', \'CAD\', \'GBP\', \'AUD\'), ', now())");
 
     if (!defined('MODULE_PAYMENT_SQUAREUP_LOGGING')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Log Mode', 'MODULE_PAYMENT_SQUAREUP_LOGGING', 'Log on Failures and Email on Failures', 'Would you like to enable debug mode?  A complete detailed log of failed transactions may be emailed to the store owner.', '6', '0', 'zen_cfg_select_option(array(\'Off\', \'Log Always\', \'Log on Failures\', \'Log Always and Email on Failures\', \'Log on Failures and Email on Failures\', \'Email Always\', \'Email on Failures\'), ', now())");
-    // DEVELOPER USE ONLY
     if (!defined('MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Live Merchant Token', 'MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN', '', 'Enter the Access Token for Live transactions from your account settings', '6', '0',  now(), 'zen_cfg_password_display')");
-    if (!defined('MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Square Refresh Token (read only)', 'MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT', '', 'DO NOT EDIT', '6', '0',  now(), 'zen_cfg_password_display')");
+    if (!defined('MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Square Refresh Token (read only)', 'MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT', '', 'DO NOT EDIT', '6', '0',  now(), '')");
+    // DEVELOPER USE ONLY
     if (!defined('MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Sandbox Merchant Token', 'MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN', 'sq0atb-nn_yQbQgZaA3VhFEykuYlQ', 'Enter the Sandbox Access Token from your account settings', '6', '0',  now(), 'zen_cfg_password_display')");
     if (!defined('MODULE_PAYMENT_SQUAREUP_TESTING_MODE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Sandbox/Live Mode', 'MODULE_PAYMENT_SQUAREUP_TESTING_MODE', 'Live', 'Use [Live] for real transactions<br>Use [Sandbox] for developer testing', '6', '0', 'zen_cfg_select_option(array(\'Live\', \'Sandbox\'), ', now())");
 
@@ -496,7 +612,7 @@ class squareup extends base {
     $db->Execute("delete from " . TABLE_CONFIGURATION . " where configuration_key like 'MODULE\_PAYMENT\_SQUAREUP\_%'");
   }
   function keys() {
-    return array(
+    $keys = array(
        'MODULE_PAYMENT_SQUAREUP_STATUS',
        'MODULE_PAYMENT_SQUAREUP_SORT_ORDER',
        'MODULE_PAYMENT_SQUAREUP_ZONE',
@@ -508,11 +624,18 @@ class squareup extends base {
        'MODULE_PAYMENT_SQUAREUP_LOCATION_ID',
        'MODULE_PAYMENT_SQUAREUP_CURRENCY',
        'MODULE_PAYMENT_SQUAREUP_LOGGING',
-       // Developer use only
-       'MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN',
-       'MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN',
-       'MODULE_PAYMENT_SQUAREUP_TESTING_MODE',
      );
+
+    if (isset($_GET['sandbox'])) {
+       // Developer use only
+        $keys = array_merge($keys, array(
+           'MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN',
+           'MODULE_PAYMENT_SQUAREUP_REFRESH_EXPIRES_AT',
+           'MODULE_PAYMENT_SQUAREUP_TESTING_MODE',
+           'MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN',
+           ));
+    }
+    return $keys;
   }
 
   /**
@@ -542,8 +665,9 @@ class squareup extends base {
   }
 
  /**
-   * Refund for a given transaction+tender
-   */
+  * Refund for a given transaction+tender
+  * @TODO - currency handling (both input and for logged output)
+  */
   function _doRefund($oID, $amount = 0, $currency_code = 'USD') {
     global $db, $messageStack;
     $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
@@ -584,10 +708,10 @@ class squareup extends base {
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $transaction_api = new \SquareConnect\Api\RefundApi();
+    $api_instance = new \SquareConnect\Api\RefundApi();
     try {
-      $result = $transaction_api->createRefund($access_token, $location_id, $transaction_id, $request_body);
-      $errors_object = $result->getErrors(); // (getCode(), getDetail())
+      $result = $api_instance->createRefund($access_token, $location_id, $transaction_id, $request_body);
+      $errors_object = $result->getErrors();
       $transaction = $result->getRefund();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
@@ -596,15 +720,16 @@ class squareup extends base {
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_COMM_ERROR, 'error');
     }
 
-    // log the response data
-    $this->logTransactionData($transaction, $request_body, strval($errors_object));
+    $this->logTransactionData($transaction, $request_body, (string)$errors_object);
 
-    // analyze the response
-    if (sizeof($errors_object)) {
+    if (count($errors_object)) {
         $msg = $this->parse_error_response($errors_object);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
         return false;
     }
+
+    // @TODO - format for current currency
+    $amount = number_format($amount, 2);
 
     // Success, so save the results
     $sql_data_array = array('orders_id' => $oID,
@@ -647,23 +772,21 @@ class squareup extends base {
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $transaction_api = new \SquareConnect\Api\TransactionApi();
+    $api_instance = new \SquareConnect\Api\TransactionApi();
     try {
-      $result = $transaction_api->captureTransaction($access_token, $location_id, $transaction_id);
+      $result = $api_instance->captureTransaction($access_token, $location_id, $transaction_id);
 
-      $errors_object = $result->getErrors(); // (getCode(), getDetail())
+      $errors_object = $result->getErrors();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
-        $this->logTransactionData(array('id'=>'FATAL ERROR'), $request_body, print_r($e->getResponseBody(), true));
+        $this->logTransactionData(array('id'=>'FATAL ERROR'), array(), print_r($e->getResponseBody(), true));
         trigger_error("Square Connect error (CAPTURE attempt). \nResponse Body:\n".print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_COMM_ERROR, 'error');
     }
 
-    // log the response data
-    $this->logTransactionData(array('capture request' => 'transaction ' . $transaction_id), array(), strval($errors_object));
+    $this->logTransactionData(array('capture request' => 'transaction ' . $transaction_id), array(), (string)$errors_object);
 
-    // analyze the response
-    if (sizeof($errors_object)) {
+    if (count($errors_object)) {
         $msg = $this->parse_error_response($errors_object);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
         return false;
@@ -715,19 +838,17 @@ class squareup extends base {
     $transaction_api = new \SquareConnect\Api\TransactionApi();
     try {
       $result = $transaction_api->voidTransaction($access_token, $location_id, $transaction_id);
-      $errors_object = $result->getErrors(); // (getCode(), getDetail())
+      $errors_object = $result->getErrors();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
-        $this->logTransactionData(array('id'=>'FATAL ERROR'), $request_body, print_r($e->getResponseBody(), true));
+        $this->logTransactionData(array('id'=>'FATAL ERROR'), array(), print_r($e->getResponseBody(), true));
         trigger_error("Square Connect error (VOID attempt). \nResponse Body:\n".print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_COMM_ERROR, 'error');
     }
 
-    // log the response data
-    $this->logTransactionData(array('void request' => 'transaction ' . $transaction_id), array(), strval($errors_object));
+    $this->logTransactionData(array('void request' => 'transaction ' . $transaction_id), array(), (string)$errors_object);
 
-    // analyze the response
-    if (sizeof($errors_object)) {
+    if (count($errors_object)) {
         $msg = $this->parse_error_response($errors_object);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
         return false;
@@ -762,6 +883,18 @@ class squareup extends base {
   }
 
 }
+
+// helper for SquareUp admin configuration: locations selector
+function zen_cfg_pull_down_square_locations($location, $key = '') {
+    $name = (($key) ? 'configuration[' . $key . ']' : 'configuration_value');
+    $class = new squareup;
+    $locations_pulldown = $class->getLocationsPulldownArray();
+    return zen_draw_pull_down_menu($name, $locations_pulldown, $location);
+}
+
+/////////////////////////////
+
+
 
 // for backward compatibility with older ZC versions before v152 which didn't have this function:
 if (!function_exists('plugin_version_check_for_updates')) {
