@@ -28,3 +28,45 @@ define('MODULE_PAYMENT_SQUAREUP_ERROR_INVALID_CARD_DATA', "We could not initiate
 define('MODULE_PAYMENT_SQUAREUP_ERROR_DECLINED', 'Sorry, your payment could not be authorized. Please select an alternate method of payment.');
 
 // Sandbox available at https://docs.connect.squareup.com/
+
+
+
+// admin tools:
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_BUTTON_TEXT', 'Do Refund');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_REFUND_CONFIRM_ERROR', 'Error: You requested to do a refund but did not check the Confirmation box.');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_INVALID_REFUND_AMOUNT', 'Error: You requested a refund but entered an invalid amount.');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_REFUND_INITIATED', 'Refund Initiated. ');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_CAPTURE_CONFIRM_ERROR', 'Error: You requested to do a capture but did not check the Confirmation box.');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_BUTTON_TEXT', 'Do Capture');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_TRANS_ID_REQUIRED_ERROR', 'Error: You need to specify a Transaction ID.');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_CAPT_INITIATED', 'Funds Capture initiated. Transaction ID: %s');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID_BUTTON_TEXT', 'Do Void');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_VOID_CONFIRM_ERROR', 'Error: You requested a Void but did not check the Confirmation box.');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_VOID_INITIATED', 'Void Initiated. Transaction ID: %s');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_UPDATE_FAILED', 'Sorry, the attempted transaction update failed unexpectedly. See logs for details.');
+
+
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_TITLE', '<strong>Refund Transactions</strong>');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND', 'You may refund money to the customer here:');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_REFUND_CONFIRM_CHECK', 'Check this box to confirm your intent: ');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_AMOUNT_TEXT', 'Enter the amount you wish to refund');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_TENDER_ID', 'Enter the Tender ID:');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_TRANS_ID', 'Enter the original Transaction ID:');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_TEXT_COMMENTS', 'Notes (will show on Order History):');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_DEFAULT_MESSAGE', 'Refund Issued');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_SUFFIX', 'You may refund an order up to the original amount tendered. You must supply the original transaction ID and tender ID');
+
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_TITLE', '<strong>Capture Transactions</strong>');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE', 'You may capture previously-authorized funds here:');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_CAPTURE_CONFIRM_CHECK', 'Check this box to confirm your intent: ');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_TRANS_ID', 'Enter the original Transaction ID: ');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_TEXT_COMMENTS', 'Notes (will show on Order History):');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_DEFAULT_MESSAGE', '');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_CAPTURE_SUFFIX', 'Captures must be performed within 6 days of the original authorization. You may only capture an order ONCE.');
+
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID_TITLE', '<strong>Voiding Transactions</strong>');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID', 'You may void an authorization which has not been captured.<br />Enter the uncaptured Transaction ID: ');
+  define('MODULE_PAYMENT_SQUAREUP_TEXT_VOID_CONFIRM_CHECK', 'Check this box to confirm your intent:');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID_TEXT_COMMENTS', 'Notes (will show on Order History):');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID_DEFAULT_MESSAGE', 'Transaction Cancelled');
+  define('MODULE_PAYMENT_SQUAREUP_ENTRY_VOID_SUFFIX', '');

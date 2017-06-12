@@ -44,23 +44,23 @@ var paymentForm = new SqPaymentForm({
   },
   callbacks: {
     cardNonceResponseReceived: function(errors, nonce, cardData) {
-      if (errors){
-        console.log("Encountered errors:");
+      if (errors) {
+        console.error("Encountered errors:");
         var error_html = ""
         errors.forEach(function(error) {
-          console.log('  ' + error.message);
+          console.error('  ' + error.message);
           error_html += "<li> " + error.message + " </li>";
         });
         document.getElementById('card-errors').innerHTML = '<ul>'+error_html+'</ul>';
         $('#paymentSubmitButton').disabled = false;
-      }else{
+      } else {
         // success
         $('#paymentSubmitButton').disabled = true;
         $("#card-errors").empty()
         document.getElementById('card-nonce').value = nonce;
         document.getElementById('card-type').value = cardData.card_brand;
         document.getElementById('card-four').value = cardData.last_4;
-        document.getElementById('card-exp').value = cardData.exp_month + cardData.exp_year;
+        document.getElementById('card-exp').value = cardData.exp_month.toString() + cardData.exp_year.toString().substr(-2);
         document.getElementsByName('checkout_payment')[0].submit();
       }
 
@@ -90,7 +90,7 @@ $(function () {
     $.ajaxSetup({
         headers: { "X-CSRFToken": "<?php echo $_SESSION['securityToken']; ?>" }
     });
-    $('#paymentSubmitButton').click(function(e) {
+    $('#paymentSubmit .submit_button').click(function(e) {
         e.preventDefault();
         paymentForm.requestCardNonce();
     });
