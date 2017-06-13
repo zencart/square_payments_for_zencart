@@ -3,7 +3,7 @@
  * Square payments module
  * www.squareup.com
  *
- * Integrated using SquareConnect PHP SDK v2.0.2
+ * Integrated using SquareConnect PHP SDK v2.1.0
  *
  * @package squareup
  * @copyright Copyright 2003-2017 Zen Cart Development Team
@@ -23,7 +23,7 @@ class squareup extends base {
   /**
    * $moduleVersion is the plugin version number
    */
-  var $moduleVersion = '0.30';
+  var $moduleVersion = '0.40';
   /**
    * $title is the displayed name for this payment method
    *
@@ -271,7 +271,6 @@ class squareup extends base {
       ),
       'delay_capture' => (bool)(MODULE_PAYMENT_SQUAREUP_TRANSACTION_TYPE === 'authorize'),
       'reference_id' => (string)(substr(zen_session_id(), 0, 40)), // 40 char max
-      'integration_id' => 'sqi_' . 'b6ff0cd7acc14f7ab24200041d066ba6', // required 32 chars
       'note' => substr(htmlentities(trim($currency_comment . ' ' . STORE_NAME)), 0, 60), // 60 char max
       'customer_id' => $_SESSION['customer_id'],
       'buyer_email_address' => $order->customer['email_address'],
@@ -283,10 +282,11 @@ class squareup extends base {
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $transaction_api = new \SquareConnect\Api\TransactionApi();
+    $api_instance = new \SquareConnect\Api\TransactionsApi();
+    $body = new \SquareConnect\Model\ChargeRequest($request_body);
     try {
-      if (MODULE_PAYMENT_SQUAREUP_TESTING_MODE != 'Live') unset($request_body['integration_id']);
-      $result = $transaction_api->charge($access_token, $location_id, $request_body);
+      if (MODULE_PAYMENT_SQUAREUP_TESTING_MODE == 'Live') $body->offsetSet('integration_id', 'sqi_' . 'b6ff0cd7acc14f7a' . 'b24200041d066ba6'); // required
+      $result = $api_instance->charge($location_id, $body);
       $errors_object = $result->getErrors();
       $transaction = $result->getTransaction();
     } catch (\SquareConnect\ApiException $e) {
@@ -517,12 +517,12 @@ class squareup extends base {
     }
   }
 
-  function getLocationID($access_token = '')
+  function getLocationID()
   {
     $location_id = trim((string)MODULE_PAYMENT_SQUAREUP_LOCATION_ID);
     if ($position = strpos($location_id, ':[')) $location_id = substr(trim($location_id, ']'), $position+2);
     if (empty($location_id)) {
-        $locations = $this->getLocationsList($access_token);
+        $locations = $this->getLocationsList();
         if ($locations == null) return '';
         $first_location = $locations[0];
         $location_id = $first_location->getId();
@@ -530,13 +530,13 @@ class squareup extends base {
     return $location_id;
   }
 
-  function getLocationsList($access_token = '')
+  function getLocationsList()
   {
     if (MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '') return null;
-    if ($access_token == '') $access_token = $this->getAccessToken();
-    $location_api = new SquareConnect\Api\LocationApi();
+    $this->getAccessToken();
+    $api_instance = new SquareConnect\Api\LocationsApi();
     try {
-        $result = $location_api->listLocations($access_token);
+        $result = $api_instance->listLocations();
         return $result->getLocations();
     } catch (Exception $e) {
         trigger_error('Exception when calling LocationApi->listLocations: ' . $e->getMessage(), E_USER_NOTICE);
@@ -557,21 +557,21 @@ class squareup extends base {
 
 // format purchase amount
 // Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD this amount is in cents.
-  function convert_to_cents($amount)
+  function convert_to_cents($amount, $currency = null)
   {
     global $currencies, $order;
-    $decimal_places = $currencies->get_decimal_places($order->info['currency']);
+    if (empty($currency)) $currency = (isset($order) && isset($order->info['currency'])) ? $order->info['currency'] : $this->gateway_currency;
+    $decimal_places = $currencies->get_decimal_places($currency);
 
     // if this currency is "already" in cents, just use the amount directly
-    if ($decimal_places == 0) return $amount;
+    if ((int)$decimal_places === 0) return (int)$amount;
 
-    if (version_compare(PHP_VERSION, '7.0.0', '<')) {
+    if (version_compare(PHP_VERSION, '5.6.0', '<')) {
         // old way
-        return $amount * pow(10, $decimal_places);
-    } else {
-        // modern way
-        return $amount * 10 ** $decimal_places;
+        return (int)($amount * pow(10, $decimal_places));
     }
+    // modern way
+    return (int)($amount * 10 ** $decimal_places);
   }
 
 
@@ -640,6 +640,10 @@ class squareup extends base {
 
   /**
    * Log transaction errors if enabled
+     *
+     * @param array $response
+     * @param array $payload
+     * @param string $errors
    */
   private function logTransactionData($response, $payload, $errors = '') {
     global $db;
@@ -666,10 +670,9 @@ class squareup extends base {
 
  /**
   * Refund for a given transaction+tender
-  * @TODO - currency handling (both input and for logged output)
   */
-  function _doRefund($oID, $amount = 0, $currency_code = 'USD') {
-    global $db, $messageStack;
+  function _doRefund($oID, $amount = null, $currency_code = null) {
+    global $db, $messageStack, $currencies;
     $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
     if ($new_order_status == 0) $new_order_status = 1;
     $proceedToRefund = true;
@@ -681,7 +684,7 @@ class squareup extends base {
     if (isset($_POST['buttonrefund']) && $_POST['buttonrefund'] == MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_BUTTON_TEXT) {
       $amount = (float)$_POST['refamt'];
       $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
-      if ($amount == 0) {
+      if (empty($amount)) {
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_INVALID_REFUND_AMOUNT, 'error');
         $proceedToRefund = false;
       }
@@ -695,32 +698,39 @@ class squareup extends base {
     $transaction_id = htmlentities($_POST['trans_id']);
     $tender = htmlentities($_POST['tender_id']);
 
-    $request_body = array (
+    // handle currency exchange
+    // @TODO - consider doing currency lookup from $order->info
+    if (empty($currency_code)) $currency_code = $this->gateway_currency;
+    $amount = $currencies->value($amount, true, $currency_code);
+    $amount_formatted = $currencies->format($amount, true, $currency_code);
+
+    $refund_details = array (
       'amount_money' => array (
-        'amount' => $this->convert_to_cents($amount),
+        'amount' => $this->convert_to_cents($amount, $currency_code),
         'currency' => $currency_code,
       ),
       'tender_id' => $tender,
       'reason' => substr(htmlentities(trim($refundNote)), 0, 60),
       'idempotency_key' => uniqid(),
     );
-    $this->logTransactionData(array(['comment'=>'Creating refund request']), $request_body);
+    $request_body = new \SquareConnect\Model\CreateRefundRequest($refund_details);
+    $this->logTransactionData(array(['comment'=>'Creating refund request']), $refund_details);
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $api_instance = new \SquareConnect\Api\RefundApi();
+    $api_instance = new SquareConnect\Api\TransactionsApi();
     try {
-      $result = $api_instance->createRefund($access_token, $location_id, $transaction_id, $request_body);
+      $result = $api_instance->createRefund($location_id, $transaction_id, $request_body);
       $errors_object = $result->getErrors();
       $transaction = $result->getRefund();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
-        $this->logTransactionData(array('id'=>'FATAL ERROR'), $request_body, print_r($e->getResponseBody(), true));
+        $this->logTransactionData(array('id'=>'FATAL ERROR'), $refund_details, print_r($e->getResponseBody(), true));
         trigger_error("Square Connect error (REFUNDING). \nResponse Body:\n".print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
         $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_COMM_ERROR, 'error');
     }
 
-    $this->logTransactionData($transaction, $request_body, (string)$errors_object);
+    $this->logTransactionData($transaction, $refund_details, (string)$errors_object);
 
     if (count($errors_object)) {
         $msg = $this->parse_error_response($errors_object);
@@ -728,14 +738,11 @@ class squareup extends base {
         return false;
     }
 
-    // @TODO - format for current currency
-    $amount = number_format($amount, 2);
-
     // Success, so save the results
     $sql_data_array = array('orders_id' => $oID,
                             'orders_status_id' => (int)$new_order_status,
                             'date_added' => 'now()',
-                            'comments' => 'REFUND INITIATED. Trans ID:' . $transaction_id . ' Tender ID:' . $tender. "\n" . ' Refund Amt: ' . $amount . "\n" . $refundNote,
+                            'comments' => 'REFUND INITIATED. Trans ID:' . $transaction_id . ' Tender ID:' . $tender. "\n" . ' Refund Amt: ' . $amount_formatted . "\n" . $refundNote,
                             'customer_notified' => 0
                          );
     zen_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
@@ -749,7 +756,7 @@ class squareup extends base {
   /**
    * Capture a previously-authorized transaction.
    */
-  function _doCapt($oID) {
+  function _doCapt($oID, $type = 'Complete', $amount = null, $currency = null) {
     global $db, $messageStack;
 
     //@TODO: fetch current order status and determine best status to set this to
@@ -772,10 +779,9 @@ class squareup extends base {
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $api_instance = new \SquareConnect\Api\TransactionApi();
+    $api_instance = new SquareConnect\Api\TransactionsApi();
     try {
-      $result = $api_instance->captureTransaction($access_token, $location_id, $transaction_id);
-
+      $result = $api_instance->captureTransaction($location_id, $transaction_id);
       $errors_object = $result->getErrors();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
@@ -830,14 +836,13 @@ class squareup extends base {
     }
     if (!$proceedToVoid) return false;
 
-
     $transaction_id = $voidAuthID;
 
     $access_token = $this->getAccessToken();
     $location_id = $this->getLocationID($access_token);
-    $transaction_api = new \SquareConnect\Api\TransactionApi();
+    $api_instance = new \SquareConnect\Api\TransactionsApi();
     try {
-      $result = $transaction_api->voidTransaction($access_token, $location_id, $transaction_id);
+      $result = $api_instance->voidTransaction($location_id, $transaction_id);
       $errors_object = $result->getErrors();
     } catch (\SquareConnect\ApiException $e) {
         $errors_object = $e->getResponseBody()->errors;
