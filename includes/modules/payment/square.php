@@ -617,7 +617,7 @@ class square extends base
         $error    = curl_error($ch);
         $errno    = curl_errno($ch);
         curl_close($ch);
-//error_log('SQUARE TOKEN EXCHANGE response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
+        //error_log('SQUARE TOKEN EXCHANGE response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
 
         if ($error == 0) {
             $this->setAccessToken($response);
@@ -845,10 +845,13 @@ class square extends base
     function _doRefund($oID, $amount = null, $currency_code = null)
     {
         global $db, $messageStack, $currencies;
+
         $new_order_status = $this->getNewOrderStatus($oID, 'refund', (int)MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
+
         $proceedToRefund = true;
-        if (isset($_POST['refconfirm']) && $_POST['refconfirm'] != 'on') {
+
+        if (!isset($_POST['refconfirm']) || $_POST['refconfirm'] != 'on') {
             $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_REFUND_CONFIRM_ERROR, 'error');
             $proceedToRefund = false;
         }
@@ -859,26 +862,23 @@ class square extends base
                 $proceedToRefund = false;
             }
         }
-        if (!isset($_POST['trans_id']) || trim($_POST['trans_id']) == '') {
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_TRANS_ID_REQUIRED_ERROR, 'error');
-            $proceedToRefund = false;
-        }
         if (!$proceedToRefund) return false;
 
         $refundNote     = strip_tags(zen_db_input($_POST['refnote']));
-        $transaction_id = htmlentities($_POST['trans_id']);
-        $tender         = htmlentities($_POST['tender_id']);
 
-        // handle currency exchange
-        // @TODO - consider adding $order and doing currency lookup from $order->info
-        if (empty($currency_code)) $currency_code = $this->gateway_currency;
+        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction_id = $transaction->getId();
+        $payments = $transaction->getTenders();
+        $payment = $payments[0];
+        $tender_id = $payment->getId();
+        $currency_code = $payment->getAmountMoney()->getCurrency();
 
         $refund_details = [
             'amount_money'    => [
                 'amount'   => $this->convert_to_cents($amount, $currency_code),
                 'currency' => $currency_code,
             ],
-            'tender_id'       => $tender,
+            'tender_id'       => $tender_id,
             'reason'          => substr(htmlentities(trim($refundNote)), 0, 60),
             'idempotency_key' => uniqid(),
         ];
@@ -940,17 +940,16 @@ class square extends base
 
         $captureNote      = strip_tags(zen_db_input($_POST['captnote']));
         $proceedToCapture = true;
+
         if (!isset($_POST['captconfirm']) || $_POST['captconfirm'] != 'on') {
             $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_CAPTURE_CONFIRM_ERROR, 'error');
             $proceedToCapture = false;
         }
-        if (!isset($_POST['captauthid']) || trim($_POST['captauthid']) == '') {
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_TRANS_ID_REQUIRED_ERROR, 'error');
-            $proceedToCapture = false;
-        }
+        
         if (!$proceedToCapture) return false;
 
-        $transaction_id = $_POST['captauthid'];
+        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
         $location_id  = $this->getLocationID();
@@ -1000,22 +999,20 @@ class square extends base
 
         $new_order_status = $this->getNewOrderStatus($oID, 'void', (int)MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
+
         $voidNote      = strip_tags(zen_db_input($_POST['voidnote'] . $note));
-        $voidAuthID    = trim(strip_tags(zen_db_input($_POST['voidauthid'])));
         $proceedToVoid = true;
+
         if (isset($_POST['ordervoid']) && $_POST['ordervoid'] == MODULE_PAYMENT_SQUARE_ENTRY_VOID_BUTTON_TEXT) {
-            if (isset($_POST['voidconfirm']) && $_POST['voidconfirm'] != 'on') {
+            if (!isset($_POST['voidconfirm']) || $_POST['voidconfirm'] != 'on') {
                 $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_VOID_CONFIRM_ERROR, 'error');
                 $proceedToVoid = false;
             }
         }
-        if ($voidAuthID == '') {
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_TRANS_ID_REQUIRED_ERROR, 'error');
-            $proceedToVoid = false;
-        }
         if (!$proceedToVoid) return false;
 
-        $transaction_id = $voidAuthID;
+        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
         $location_id  = $this->getLocationID();

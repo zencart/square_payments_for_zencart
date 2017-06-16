@@ -50,26 +50,25 @@ define('MODULE_PAYMENT_SQUARE_TEXT_VOID_INITIATED', 'Void Initiated. Transaction
 define('MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED', 'Sorry, the attempted transaction update failed unexpectedly. See logs for details.');
 
 
-define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TITLE', '<strong>Refund Transactions</strong>');
+define('MODULE_PAYMENT_SQUARE_ENTRY_TRANSACTION_SUMMARY', '<strong>Transaction Summary</strong>');
+define('MODULE_PAYMENT_SQUARE_ENTRY_TRANSACTION_ACTIONS', '<strong>Actions</strong>');
+define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TITLE', '<strong>Refund Transaction</strong>');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND', 'You may refund money to the customer here:');
 define('MODULE_PAYMENT_SQUARE_TEXT_REFUND_CONFIRM_CHECK', 'Check this box to confirm your intent: ');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_AMOUNT_TEXT', 'Enter the amount you wish to refund');
-define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TENDER_ID', 'Enter the Tender ID:');
-define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TRANS_ID', 'Enter the original Transaction ID:');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TEXT_COMMENTS', 'Notes (will show on Order History):');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_DEFAULT_MESSAGE', 'Refund Issued');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_SUFFIX', 'You may refund an order within 120 days, up to the original amount tendered. You must supply the original transaction ID and tender ID<br>See the Square site for more <a href="https://squareup.com/help/us/en/article/5060" target="_blank">information on Square refunds</a>.');
 
-define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TITLE', '<strong>Capture Transactions</strong>');
+define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TITLE', '<strong>Capture Transaction</strong>');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE', 'You may capture previously-authorized funds here:');
 define('MODULE_PAYMENT_SQUARE_TEXT_CAPTURE_CONFIRM_CHECK', 'Check this box to confirm your intent: ');
-define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TRANS_ID', 'Enter the original Transaction ID: ');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TEXT_COMMENTS', 'Notes (will show on Order History):');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_DEFAULT_MESSAGE', '');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_SUFFIX', 'Captures must be performed within 6 days of the original authorization. You may only capture an order ONCE.');
 
-define('MODULE_PAYMENT_SQUARE_ENTRY_VOID_TITLE', '<strong>Voiding Transactions</strong>');
-define('MODULE_PAYMENT_SQUARE_ENTRY_VOID', 'You may void an authorization which has not been captured.<br />Enter the uncaptured Transaction ID: ');
+define('MODULE_PAYMENT_SQUARE_ENTRY_VOID_TITLE', '<strong>Voiding Transaction</strong>');
+define('MODULE_PAYMENT_SQUARE_ENTRY_VOID', 'You may void an authorization which has not been captured.');
 define('MODULE_PAYMENT_SQUARE_TEXT_VOID_CONFIRM_CHECK', 'Check this box to confirm your intent:');
 define('MODULE_PAYMENT_SQUARE_ENTRY_VOID_TEXT_COMMENTS', 'Notes (will show on Order History):');
 define('MODULE_PAYMENT_SQUARE_ENTRY_VOID_DEFAULT_MESSAGE', 'Transaction Cancelled');

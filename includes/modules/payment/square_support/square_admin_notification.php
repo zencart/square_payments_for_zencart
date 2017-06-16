@@ -28,6 +28,10 @@ if (!empty($transaction) && $transaction->getId()) {
     $outputSquare .= '<td valign="top"><table>' . "\n";
 
     $outputSquare .= '<tr><td class="main">' . "\n";
+    $outputSquare .= MODULE_PAYMENT_SQUARE_ENTRY_TRANSACTION_SUMMARY . ':' . "\n";
+    $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
+
+    $outputSquare .= '<tr><td class="main">' . "\n";
     $outputSquare .= 'Transaction ID: ' . "\n";
     $outputSquare .= '</td><td class="main">' . "\n";
     $outputSquare .= $transaction->getId() . "\n";
@@ -39,15 +43,9 @@ if (!empty($transaction) && $transaction->getId()) {
     $outputSquare .= zen_output_string_protected($transaction->getReferenceId()) . "\n";
     $outputSquare .= '</td></tr>' . "\n";
 
-//    $outputSquare .= '<tr><td class="main">' . "\n";
-//    $outputSquare .= 'Square Service: ' . "\n";
-//    $outputSquare .= '</td><td class="main">' . "\n";
-//    $outputSquare .= $transaction->getProduct() . "\n";
-//    $outputSquare .= '</td></tr>' . "\n";
-
     $outputSquare .= '<tr><td class="main">' . "\n";
     $outputSquare .= '<strong>Payments Tendered: </strong>' . "\n";
-    $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
+    $outputSquare .= '</td><td class="main"><strong>Tender ID:</strong></td></tr>' . "\n";
 
     $payments      = $transaction->getTenders();
     $payment_created_at = null;
@@ -58,9 +56,9 @@ if (!empty($transaction) && $transaction->getId()) {
         $currency_code = $payment->getAmountMoney()->getCurrency();
         $amount = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
         $outputSquare .= '<tr><td class="main">' . "\n";
-        $outputSquare .= $payment->getCreatedAt() . "\n<br>" . $payment->getId();
+        $outputSquare .= $amount . ' ' . $currency_code  . ' ' . $last_status . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $payment->getCreatedAt() . "\n";
         $outputSquare .= '</td><td class="main">' . "\n";
-        $outputSquare .= $amount . ' ' . $currency_code  . ' ' . $last_status . "\n";
+        $outputSquare .= $payment->getId();
         if ($payment->getNote()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($payment->getNote()));
         $outputSquare .= '</td></tr>' . "\n";
     }
@@ -74,9 +72,9 @@ if (!empty($transaction) && $transaction->getId()) {
             $amount = $currencies->format($refund->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
             $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
             $outputSquare .= '<tr><td class="main">' . "\n";
-            $outputSquare .= $refund->getCreatedAt() . "\n<br>" . $refund->getId() . "\n";
+            $outputSquare .= '-' . $amount . ' ' . $currency_code . ' ' . $refund->getStatus() . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $refund->getCreatedAt() . "\n";
             $outputSquare .= '</td><td class="main">' . "\n";
-            $outputSquare .= '-' . $amount . ' ' . $currency_code . ' ' . $refund->getStatus() . "\n";
+            $outputSquare .= $refund->getId() . "\n";
             if ($refund->getReason()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($refund->getReason()));
             $outputSquare .= '</td></tr>' . "\n";
         }
@@ -93,8 +91,6 @@ if (method_exists($this, '_doRefund')) {
     $outputRefund .= zen_draw_form('squarerefund', FILENAME_ORDERS, zen_get_all_get_params(['action']) . 'action=doRefund', 'post', '', true) . zen_hide_session_id();;
     $outputRefund .= MODULE_PAYMENT_SQUARE_ENTRY_REFUND . '<br />';
     $outputRefund .= MODULE_PAYMENT_SQUARE_ENTRY_REFUND_AMOUNT_TEXT . ' ' . zen_draw_input_field('refamt', '', 'length="10" placeholder="amount"') . '<br />';
-    $outputRefund .= MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TENDER_ID . ' ' . zen_draw_input_field('tender_id', '', 'length="40" placeholder="tender ID"') . '<br />';
-    $outputRefund .= MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TRANS_ID . ' ' . zen_draw_input_field('trans_id', '', 'length="40" placeholder="transaction ID"') . '<br />';
     $outputRefund .= MODULE_PAYMENT_SQUARE_TEXT_REFUND_CONFIRM_CHECK . zen_draw_checkbox_field('refconfirm', '', false) . '<br />';
     $outputRefund .= '<br />' . MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TEXT_COMMENTS . '<br />' . zen_draw_textarea_field('refnote', 'soft', '50', '3', MODULE_PAYMENT_SQUARE_ENTRY_REFUND_DEFAULT_MESSAGE);
     $outputRefund .= '<br />' . MODULE_PAYMENT_SQUARE_ENTRY_REFUND_SUFFIX;
@@ -109,7 +105,6 @@ if (method_exists($this, '_doCapt')) {
     $outputCapt .= '<td class="main">' . MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TITLE . '<br />' . "\n";
     $outputCapt .= zen_draw_form('squarecapture', FILENAME_ORDERS, zen_get_all_get_params(['action']) . 'action=doCapture', 'post', '', true) . zen_hide_session_id();
     $outputCapt .= MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE . '<br />';
-    $outputCapt .= MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TRANS_ID . '<br />' . zen_draw_input_field('captauthid', '', 'length="40" placeholder="transaction ID"') . '<br />';
     $outputCapt .= MODULE_PAYMENT_SQUARE_TEXT_CAPTURE_CONFIRM_CHECK . zen_draw_checkbox_field('captconfirm', '', false) . '<br />';
     $outputCapt .= '<br />' . MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TEXT_COMMENTS . '<br />' . zen_draw_textarea_field('captnote', 'soft', '50', '2', MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_DEFAULT_MESSAGE);
     $outputCapt .= '<br />' . MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_SUFFIX;
@@ -123,7 +118,7 @@ if (method_exists($this, '_doVoid')) {
     $outputVoid .= '<tr style="background-color : #dddddd; border-style : dotted;">' . "\n";
     $outputVoid .= '<td class="main">' . MODULE_PAYMENT_SQUARE_ENTRY_VOID_TITLE . '<br />' . "\n";
     $outputVoid .= zen_draw_form('squarevoid', FILENAME_ORDERS, zen_get_all_get_params(['action']) . 'action=doVoid', 'post', '', true) . zen_hide_session_id();
-    $outputVoid .= MODULE_PAYMENT_SQUARE_ENTRY_VOID . '<br />' . zen_draw_input_field('voidauthid', '', 'length="40" placeholder="transaction ID"');
+    $outputVoid .= MODULE_PAYMENT_SQUARE_ENTRY_VOID;
     $outputVoid .= '<br />' . MODULE_PAYMENT_SQUARE_TEXT_VOID_CONFIRM_CHECK . zen_draw_checkbox_field('voidconfirm', '', false);
     $outputVoid .= '<br /><br />' . MODULE_PAYMENT_SQUARE_ENTRY_VOID_TEXT_COMMENTS . '<br />' . zen_draw_textarea_field('voidnote', 'soft', '50', '3', MODULE_PAYMENT_SQUARE_ENTRY_VOID_DEFAULT_MESSAGE);
     $outputVoid .= '<br />' . MODULE_PAYMENT_SQUARE_ENTRY_VOID_SUFFIX;
@@ -137,9 +132,11 @@ if (method_exists($this, '_doVoid')) {
 if (defined('MODULE_PAYMENT_SQUARE_STATUS') && MODULE_PAYMENT_SQUARE_STATUS != '') {
     $output = '<!-- BOF: square admin transaction processing tools -->';
     $output .= $outputStartBlock;
+    $output .= '<td>';
+    $output .= $outputStartBlock;
     $output .= $outputSquare;
     $output .= $outputEndBlock;
-    $output .= '</tr><tr>' . "\n";
+    $output .= '</td><td>' . "\n";
     $output .= $outputStartBlock;
 
     if ($last_status == 'AUTHORIZED') {
@@ -150,6 +147,8 @@ if (defined('MODULE_PAYMENT_SQUARE_STATUS') && MODULE_PAYMENT_SQUARE_STATUS != '
             if (method_exists($this, '_doRefund')) $output .= $outputRefund;
         }
     }
+    $output .= $outputEndBlock;
+    $output .= '</td>';
     $output .= $outputEndBlock;
     $output .= '<!-- EOF: square admin transaction processing tools -->';
 }
