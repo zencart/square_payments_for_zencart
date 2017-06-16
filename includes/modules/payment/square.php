@@ -27,7 +27,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    var $moduleVersion = '0.40';
+    var $moduleVersion = '0.50';
     /**
      * $title is the displayed name for this payment method
      *
@@ -81,7 +81,7 @@ class square extends base
         $this->enabled     = ((MODULE_PAYMENT_SQUARE_STATUS == 'True') ? true : false);
         $this->sort_order  = MODULE_PAYMENT_SQUARE_SORT_ORDER;
         $this->title       = MODULE_PAYMENT_SQUARE_TEXT_CATALOG_TITLE; // Payment module title in Catalog
-        $this->description = 'Square ' . $this->moduleVersion . '<br>' . MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION;
+        $this->description = '<strong>Square Payments Module ' . $this->moduleVersion . '</strong><br><br>' . MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION;
         if (IS_ADMIN_FLAG === true) {
             $this->title = MODULE_PAYMENT_SQUARE_TEXT_ADMIN_TITLE;
             if (defined('MODULE_PAYMENT_SQUARE_STATUS')) {
@@ -408,6 +408,33 @@ class square extends base
         return $transaction;
     }
 
+    function transactionDetails($order_id)
+    {
+        global $currencies;
+        $transaction = $this->lookupTransactionForOrder($order_id);
+        $payments      = $transaction->getTenders();
+        $payment_created_at = null;
+        $this->transaction_status   = '';
+        foreach ($payments as $payment) {
+            $this->transaction_status = $payment->getCardDetails()->getStatus();
+            if (!$payment_created_at) $payment_created_at = $payment->getCreatedAt();
+            $currency_code = $payment->getAmountMoney()->getCurrency();
+            $amount = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+            $date = $payment->getCreatedAt();
+            $id = $payment->getId();
+        }
+        $refunds = $transaction->getRefunds();
+        if (count($refunds)) {
+            foreach ($refunds as $refund) {
+                $currency_code = $refund->getAmountMoney()->getCurrency();
+                $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+                $date = $refund->getCreatedAt();
+                $id = $refund->getId();
+                $status = $refund->getStatus();
+            }
+        }
+    }
+
     /**
      * Prepare admin-page components
      *
@@ -453,7 +480,7 @@ class square extends base
         return false;
     }
 
-    // This should also be callable from a cron job
+    // called by module and by cron job
     function token_refresh_check()
     {
         if (MODULE_PAYMENT_SQUARE_APPLICATION_ID == '') return 'not configured';
@@ -562,7 +589,7 @@ class square extends base
             ]);
 
         return $url . $params;
-        // code=sq0abc-D1efG2HIJK345lmno6PqR78S9Tuv0WxY&response_type=code
+        // example: code=sq0abc-D1efG2HIJK345lmno6PqR78S9Tuv0WxY&response_type=code
     }
 
     function exchangeForToken($token_redeem_code)
@@ -644,8 +671,10 @@ class square extends base
         return $locations_pulldown;
     }
 
-// format purchase amount
-// Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD this amount is in cents.
+/**
+ * format purchase amount
+ * Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD the amount is in cents.
+ */
     function convert_to_cents($amount, $currency = null)
     {
         global $currencies, $order;
@@ -656,7 +685,7 @@ class square extends base
         if ((int)$decimal_places === 0) return (int)$amount;
 
         if (version_compare(PHP_VERSION, '5.6.0', '<')) {
-            // old way
+            // old PHP way
             return (int)($amount * pow(10, $decimal_places));
         }
 
@@ -664,6 +693,24 @@ class square extends base
         return (int)($amount * 10 ** $decimal_places);
     }
 
+    function convert_from_cents($amount, $currency_code = null)
+    {
+        global $currencies, $order;
+        if (empty($currency)) $currency = (isset($order) && isset($order->info['currency'])) ? $order->info['currency'] : $this->gateway_currency;
+        $decimal_places = $currencies->get_decimal_places($currency);
+
+        // if this currency is "already" in cents, just use the amount directly
+        if ((int)$decimal_places === 0) return (int)$amount;
+    
+        if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+            // old PHP way
+            return ((int)$amount / pow(10, $decimal_places));
+        }
+
+        // modern way
+        return ((int)$amount / 10 ** $decimal_places);
+
+    }
 
     function check()
     {
@@ -683,14 +730,14 @@ class square extends base
         global $db;
 
         if (!defined('MODULE_PAYMENT_SQUARE_STATUS')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Square Module', 'MODULE_PAYMENT_SQUARE_STATUS', 'True', 'Do you want to accept Square payments?', '6', '0', 'zen_cfg_select_option(array(\'True\', \'False\'), ', now())");
-        if (!defined('MODULE_PAYMENT_SQUARE_SORT_ORDER')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('Sort order of display.', 'MODULE_PAYMENT_SQUARE_SORT_ORDER', '0', 'Sort order of displaying payment options to the customer. Lowest is displayed first.', '6', '0', now())");
+        if (!defined('MODULE_PAYMENT_SQUARE_SORT_ORDER')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('<hr>Sort order of display.', 'MODULE_PAYMENT_SQUARE_SORT_ORDER', '0', 'Sort order of displaying payment options to the customer. Lowest is displayed first.', '6', '0', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ZONE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', 'MODULE_PAYMENT_SQUARE_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '2', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Order Status', 'MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID', '2', 'Set the status of Paid orders made with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Refunded Order Status', 'MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID', '1', 'Set the status of refunded orders to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())");
-        if (!defined('MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
+        if (!defined('MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?<br>NOTE: If you use [authorize] then you must manually capture each payment within 6 days or it will be voided automatically.', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application ID', 'MODULE_PAYMENT_SQUARE_APPLICATION_ID', 'sq0idp-', 'Enter the Application ID from your App settings', '6', '0',  now(), 'zen_cfg_password_display')");
         if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_SECRET')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application Secret (OAuth)', 'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET', 'sq0csp-', 'Enter the Application Secret from your App OAuth settings', '6', '0',  now(), 'zen_cfg_password_display')");
-        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION_ID', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
+        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('<hr>Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION_ID', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
         if (!defined('MODULE_PAYMENT_SQUARE_CURRENCY')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Currency Required', 'MODULE_PAYMENT_SQUARE_CURRENCY', 'USD', 'Which currency is your Square Account configured to accept?<br>(Purchases in any other currency will be pre-converted to this currency before submission using the exchange rates in your store admin.)', '6', '0', 'zen_cfg_select_option(array(\'USD\', \'CAD\', \'GBP\', \'AUD\'), ', now())");
 
         if (!defined('MODULE_PAYMENT_SQUARE_LOGGING')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Log Mode', 'MODULE_PAYMENT_SQUARE_LOGGING', 'Log on Failures and Email on Failures', 'Would you like to enable debug mode?  A complete detailed log of failed transactions may be emailed to the store owner.', '6', '0', 'zen_cfg_select_option(array(\'Off\', \'Log Always\', \'Log on Failures\', \'Log Always and Email on Failures\', \'Log on Failures and Email on Failures\', \'Email Always\', \'Email on Failures\'), ', now())");
@@ -713,14 +760,14 @@ class square extends base
     {
         $keys = [
             'MODULE_PAYMENT_SQUARE_STATUS',
-            'MODULE_PAYMENT_SQUARE_SORT_ORDER',
-            'MODULE_PAYMENT_SQUARE_ZONE',
-            'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE',
-            'MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID',
-            'MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID',
             'MODULE_PAYMENT_SQUARE_APPLICATION_ID',
             'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET',
+            'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE',
             'MODULE_PAYMENT_SQUARE_LOCATION_ID',
+            'MODULE_PAYMENT_SQUARE_SORT_ORDER',
+            'MODULE_PAYMENT_SQUARE_ZONE',
+            'MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID',
+            'MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID',
             'MODULE_PAYMENT_SQUARE_CURRENCY',
             'MODULE_PAYMENT_SQUARE_LOGGING',
         ];
@@ -753,7 +800,7 @@ class square extends base
               `transaction_id` varchar(40) NOT NULL,
               `tender_id` varchar(40),
               `action` varchar(40),
-              `created_at` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+              `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
               PRIMARY KEY (`id`)
             )";
             $db->Execute($sql);
@@ -798,7 +845,7 @@ class square extends base
     function _doRefund($oID, $amount = null, $currency_code = null)
     {
         global $db, $messageStack, $currencies;
-        $new_order_status = $this->getNewOrderStatus($oID, 'capture', 'refund', (int)MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID);
+        $new_order_status = $this->getNewOrderStatus($oID, 'refund', (int)MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
         $proceedToRefund = true;
         if (isset($_POST['refconfirm']) && $_POST['refconfirm'] != 'on') {
@@ -825,10 +872,6 @@ class square extends base
         // handle currency exchange
         // @TODO - consider adding $order and doing currency lookup from $order->info
         if (empty($currency_code)) $currency_code = $this->gateway_currency;
-        // @todo - change these to 'true' after fixing rounding issue
-        $amount_formatted = number_format($amount, 2);
-//        $amount_formatted = $currencies->format($amount, false, $currency_code);
-//        $amount           = $currencies->rateAdjusted($amount, false, $currency_code);
 
         $refund_details = [
             'amount_money'    => [
@@ -865,19 +908,22 @@ class square extends base
             return false;
         }
 
+        $currency_code = $transaction->getAmountMoney()->getCurrency();
+        $amount = $currencies->format($transaction->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+
         // Success, so save the results
         $sql_data_array = [
             'orders_id'         => $oID,
             'orders_status_id'  => (int)$new_order_status,
             'date_added'        => 'now()',
-            'comments'          => 'REFUND INITIATED.  Refund Amt: ' . $amount_formatted . "\n" . $refundNote,
+            'comments'          => 'REFUNDED: ' . $amount . "\n" . $refundNote,
             'customer_notified' => 0,
         ];
         zen_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
         $db->Execute("update " . TABLE_ORDERS . "
-                  set orders_status = " . (int)$new_order_status . "
-                  where orders_id = " . (int)$oID);
-        $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED . $transaction->getAmountMoney()), 'success');
+                      set orders_status = " . (int)$new_order_status . "
+                      where orders_id = " . (int)$oID);
+        $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED . $amount), 'success');
 
         return true;
     }
@@ -889,7 +935,7 @@ class square extends base
     {
         global $db, $messageStack;
 
-        $new_order_status = $this->getNewOrderStatus($oID, 'void', 'capture', (int)MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID);
+        $new_order_status = $this->getNewOrderStatus($oID, 'capture', (int)MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
 
         $captureNote      = strip_tags(zen_db_input($_POST['captnote']));
@@ -938,8 +984,8 @@ class square extends base
         ];
         zen_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
         $db->Execute("update " . TABLE_ORDERS . "
-                  set orders_status = " . (int)$new_order_status . "
-                  where orders_id = " . (int)$oID);
+                      set orders_status = " . (int)$new_order_status . "
+                      where orders_id = " . (int)$oID);
         $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_CAPT_INITIATED, $transaction_id), 'success');
 
         return true;
@@ -1002,8 +1048,8 @@ class square extends base
         ];
         zen_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
         $db->Execute("update " . TABLE_ORDERS . "
-                  set orders_status = '" . (int)$new_order_status . "'
-                  where orders_id = '" . (int)$oID . "'");
+                      set orders_status = '" . (int)$new_order_status . "'
+                      where orders_id = '" . (int)$oID . "'");
         $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_VOID_INITIATED, $transaction_id), 'success');
 
         return true;

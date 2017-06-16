@@ -48,14 +48,19 @@ if (!empty($transaction) && $transaction->getId()) {
     $outputSquare .= '<tr><td class="main">' . "\n";
     $outputSquare .= '<strong>Payments Tendered: </strong>' . "\n";
     $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
-    $payments     = $transaction->getTenders();
+
+    $payments      = $transaction->getTenders();
+    $payment_created_at = null;
+    $last_status   = '';
     foreach ($payments as $payment) {
+        $last_status = $payment->getCardDetails()->getStatus();
+        if (!$payment_created_at) $payment_created_at = $payment->getCreatedAt();
         $currency_code = $payment->getAmountMoney()->getCurrency();
-        $amount = $currencies->format($payment->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+        $amount = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
         $outputSquare .= '<tr><td class="main">' . "\n";
         $outputSquare .= $payment->getCreatedAt() . "\n<br>" . $payment->getId();
         $outputSquare .= '</td><td class="main">' . "\n";
-        $outputSquare .= $amount . ' ' . $currency_code . "\n";
+        $outputSquare .= $amount . ' ' . $currency_code  . ' ' . $last_status . "\n";
         if ($payment->getNote()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($payment->getNote()));
         $outputSquare .= '</td></tr>' . "\n";
     }
@@ -67,6 +72,7 @@ if (!empty($transaction) && $transaction->getId()) {
         foreach ($refunds as $refund) {
             $currency_code = $refund->getAmountMoney()->getCurrency();
             $amount = $currencies->format($refund->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+            $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
             $outputSquare .= '<tr><td class="main">' . "\n";
             $outputSquare .= $refund->getCreatedAt() . "\n<br>" . $refund->getId() . "\n";
             $outputSquare .= '</td><td class="main">' . "\n";
@@ -136,12 +142,13 @@ if (defined('MODULE_PAYMENT_SQUARE_STATUS') && MODULE_PAYMENT_SQUARE_STATUS != '
     $output .= '</tr><tr>' . "\n";
     $output .= $outputStartBlock;
 
-    if (MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE == 'authorize' || (isset($_GET['authcapt']) && $_GET['authcapt'] == 'on')) {
-        if (method_exists($this, '_doRefund')) $output .= $outputRefund;
+    if ($last_status == 'AUTHORIZED') {
         if (method_exists($this, '_doCapt')) $output .= $outputCapt;
         if (method_exists($this, '_doVoid')) $output .= $outputVoid;
-    } else {
-        if (method_exists($this, '_doRefund')) $output .= $outputRefund;
+    } elseif ($last_status != 'VOIDED') {
+        if (new DateTime($payment_created_at) > new DateTime('-120 days')) {
+            if (method_exists($this, '_doRefund')) $output .= $outputRefund;
+        }
     }
     $output .= $outputEndBlock;
     $output .= '<!-- EOF: square admin transaction processing tools -->';

@@ -8,7 +8,7 @@
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
 
-define('MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION', 'Square Gateway module.<br><br>Allows you to accept PCI Compliant credit card payments without making the customer leave your store!<br>
+define('MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION', 'Accept credit cards in less than 5 minutes.<br>No monthly fees and no setup fees.<br>PCI Compliant. Customer never leaves your store!<br>Standard rates are 2.9% + $0.30 per transaction.<br>Funds are deposited in your bank account in 1-2 business days.<br><br>
        <a href="https://www.zen-cart.com/partners/square" target="_blank">Get more information, or Sign up for an account</a><br><br>
        <a href="https://squareup.com/login" target="_blank">Log In To Your Square Account</a>');
 
@@ -39,7 +39,7 @@ define('MODULE_PAYMENT_SQUARE_TEXT_NEED_ACCESS_TOKEN',
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_BUTTON_TEXT', 'Do Refund');
 define('MODULE_PAYMENT_SQUARE_TEXT_REFUND_CONFIRM_ERROR', 'Error: You requested to do a refund but did not check the Confirmation box.');
 define('MODULE_PAYMENT_SQUARE_TEXT_INVALID_REFUND_AMOUNT', 'Error: You requested a refund but entered an invalid amount.');
-define('MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED', 'Refund Initiated. ');
+define('MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED', 'Refunded ');
 define('MODULE_PAYMENT_SQUARE_TEXT_CAPTURE_CONFIRM_ERROR', 'Error: You requested to do a capture but did not check the Confirmation box.');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_BUTTON_TEXT', 'Do Capture');
 define('MODULE_PAYMENT_SQUARE_TEXT_TRANS_ID_REQUIRED_ERROR', 'Error: You need to specify a Transaction ID.');
@@ -58,7 +58,7 @@ define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TENDER_ID', 'Enter the Tender ID:');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TRANS_ID', 'Enter the original Transaction ID:');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TEXT_COMMENTS', 'Notes (will show on Order History):');
 define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_DEFAULT_MESSAGE', 'Refund Issued');
-define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_SUFFIX', 'You may refund an order up to the original amount tendered. You must supply the original transaction ID and tender ID');
+define('MODULE_PAYMENT_SQUARE_ENTRY_REFUND_SUFFIX', 'You may refund an order within 120 days, up to the original amount tendered. You must supply the original transaction ID and tender ID<br>See the Square site for more <a href="https://squareup.com/help/us/en/article/5060" target="_blank">information on Square refunds</a>.');
 
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TITLE', '<strong>Capture Transactions</strong>');
 define('MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE', 'You may capture previously-authorized funds here:');
