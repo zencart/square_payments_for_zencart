@@ -1,6 +1,6 @@
 <?php
 /**
- * Callback module for SquareUp payment module
+ * Callback module for Square payment module
  */
 if (isset($_GET) && isset($_GET['response_type']) && $_GET['response_type'] == 'code') {
     $mode = 'web';
@@ -14,15 +14,15 @@ if ($mode == 'web' && (!isset($_GET['response_type']) || $_GET['response_type'] 
     if ($verbose) echo 'INVALID PARAMS';
     exit(1);
 }
-$module = new payment('squareup');
-$square = new squareup;
+$module = new payment('square');
+$square = new square;
 if ($mode == 'web') {
     if ($verbose) error_log('SQUARE TOKEN REQUEST - auth code for exchange: ' . $_GET['code'] . "\n\n" . print_r($_GET, true));
-    $square->getToken($_GET['code']);
+    $square->exchangeForToken($_GET['code']);
     exit(0);
 }
 if ($mode == 'cli') {
-    if (!defined('MODULE_PAYMENT_SQUAREUP_STATUS') || MODULE_PAYMENT_SQUAREUP_STATUS != 'True') {
+    if (!defined('MODULE_PAYMENT_SQUARE_STATUS') || MODULE_PAYMENT_SQUARE_STATUS != 'True') {
         if ($verbose) echo 'MODULE DISABLED';
         exit(1);
     }
@@ -30,7 +30,7 @@ if ($mode == 'cli') {
     $result = $square->token_refresh_check();
     if ($verbose) echo $result;
     if ($result == 'failure') {
-        if (!$is_browser) echo 'SquareUp Token Refresh Failure. See logs.';
+        if (!$is_browser) echo 'Square Token Refresh Failure. See logs.';
         exit(1);
     }
 }

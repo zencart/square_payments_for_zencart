@@ -2,7 +2,7 @@
 
 ## About
 
-The Square payment gateway allows you to connect your SquareUp account to your online store.
+The Square payment plugin allows you to connect your Square account to your online store.
 
 The payment gateway is operated by Square, Inc, which also offers POS card-swipe readers to handle card-present transactions you can conduct from your phone or tablet in-store or mobile.
 
@@ -44,13 +44,13 @@ Simply upload these files into the corresponding folders on your own store:
 
 `/includes/classes/vendors/square` (whole directory)
 
-`/includes/modules/payment/squareup.php`
+`/includes/modules/payment/square.php`
 
-`/includes/modules/payment/square_support/squareup_admin_notification.php`
+`/includes/modules/payment/square_support/square_admin_notification.php`
 
-`/includes/languages/english/modules/payment/squareup.php`
+`/includes/languages/english/modules/payment/square.php`
 
-`/includes/modules/pages/checkout_payment/jscript_squareup.php`
+`/includes/modules/pages/checkout_payment/jscript_square.php`
 
 **Note: You should not copy the README.md, LICENSE or changelog.txt files to your live server.**
 
@@ -60,7 +60,7 @@ Simply upload these files into the corresponding folders on your own store:
   * Application ID (under "Credentials" tab)
   * Application Secret (under "OAuth" tab)
 
-2. After pasting those values into your SquareUp module settings, click Save.
+2. After pasting those values into your Square module settings, click Save.
 
 3. At the top of the displayed settings you will see a button about an Expired Token. Click that button. It will take you to your Square account and ask you to login and authorize the app for your store. Click Authorize. (It may also just quickly open and close a window if you're already logged in to Square in the same browser.)
 After doing that, back in your store Admin, if you refresh the page, that button will go away
@@ -105,7 +105,7 @@ If you are running into difficulty configuring the module in your store, or are 
 
 ### Common errors
 - "nonce" failures:  This is typically caused by javascript or jquery conflicts in your checkout pages
-- the fields for credit card numbers are flat with no text box to type into: This typically means you're missing the jscript_squareup.php file as described earlier in the Installation instructions. Or you've got a firewall or browser plugin blocking access to Square's javascript code
+- the fields for credit card numbers are flat with no text box to type into: This typically means you're missing the jscript_square.php file as described earlier in the Installation instructions. Or you've got a firewall or browser plugin blocking access to Square's javascript code
 
 
 

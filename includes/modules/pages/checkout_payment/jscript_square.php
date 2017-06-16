@@ -1,13 +1,13 @@
 <?php
 /**
- * Javascript to prep functionality for Squareup payment module
+ * Javascript to prep functionality for Square payment module
  *
- * @package squareup
+ * @package square
  * @copyright Copyright 2003-2017 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
-if (!defined(MODULE_PAYMENT_SQUAREUP_STATUS) || MODULE_PAYMENT_SQUAREUP_STATUS != 'True' || (!defined('MODULE_PAYMENT_SQUAREUP_APPLICATION_ID') || MODULE_PAYMENT_SQUAREUP_ACCESS_TOKEN == '')) {
+if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'True' || (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_ID') || MODULE_PAYMENT_SQUARE_ACCESS_TOKEN == '')) {
     return false;
 }
 ?>
@@ -17,7 +17,7 @@ if (!defined(MODULE_PAYMENT_SQUAREUP_STATUS) || MODULE_PAYMENT_SQUAREUP_STATUS !
 <script type="text/javascript">
     var cardNonce;
     var paymentForm = new SqPaymentForm({
-        applicationId: '<?php echo MODULE_PAYMENT_SQUAREUP_APPLICATION_ID; ?>',
+        applicationId: '<?php echo MODULE_PAYMENT_SQUARE_APPLICATION_ID; ?>',
         inputClass: 'paymentInput',
         inputStyles: [
             {
@@ -27,19 +27,19 @@ if (!defined(MODULE_PAYMENT_SQUAREUP_STATUS) || MODULE_PAYMENT_SQUAREUP_STATUS !
             }
         ],
         cardNumber: {
-            elementId: 'squareup_cc-number',
+            elementId: 'square_cc-number',
             placeholder: '•••• •••• •••• ••••'
         },
         cvv: {
-            elementId: 'squareup_cc-cvv',
+            elementId: 'square_cc-cvv',
             placeholder: 'CVV'
         },
         expirationDate: {
-            elementId: 'squareup_cc-expires',
+            elementId: 'square_cc-expires',
             placeholder: 'MM/YY'
         },
         postalCode: {
-            elementId: 'squareup_cc-postcode',
+            elementId: 'square_cc-postcode',
             placeholder: '11111'
         },
         callbacks: {
@@ -73,7 +73,7 @@ if (!defined(MODULE_PAYMENT_SQUAREUP_STATUS) || MODULE_PAYMENT_SQUAREUP_STATUS !
             inputEventReceived: function (inputEvent) {
                 switch (inputEvent.eventType) {
                     case 'focusClassAdded':
-                        methodSelect('pmt-squareup');
+                        methodSelect('pmt-square');
                         break;
                     case 'cardBrandChanged':
                         document.getElementById('sq-card-brand').innerHTML = inputEvent.cardBrand;
