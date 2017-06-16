@@ -11,6 +11,8 @@
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
 
+if (!defined('TABLE_SQUAREUP_PAYMENTS')) define('TABLE_SQUAREUP_PAYMENTS', 'squareup_payments');
+
 /**
  * Square Payments module class
  */
@@ -332,9 +334,10 @@ class squareup extends base
         }
 
         if (!empty($transaction->getId())) {
-            $tenders              = $transaction->getTenders();
-            $this->auth_code      = $tenders[0]['id']; // since Square doesn't supply an auth code, we use the tender-id instead, since it is required for submitting refunds
-            $this->transaction_id = $transaction->getId() . "\n" . $transaction->getCreatedAt();
+            $tenders                = $transaction->getTenders();
+            $this->auth_code        = $tenders[0]['id']; // since Square doesn't supply an auth code, we use the tender-id instead, since it is required for submitting refunds
+            $this->transaction_id   = $transaction->getId();
+            $this->transaction_date = $transaction->getCreatedAt();
 
             return true;
         }
@@ -357,28 +360,65 @@ class squareup extends base
             $currency_comment = "\n(" . number_format($order->info['total'] * $currencies->get_value($this->gateway_currency), 2) . ' ' . $this->gateway_currency . ')';
         }
         $sql = "insert into " . TABLE_ORDERS_STATUS_HISTORY . " (comments, orders_id, orders_status_id, customer_notified, date_added) values (:orderComments, :orderID, :orderStatus, -1, now() )";
-        $sql = $db->bindVars($sql, ':orderComments', 'Credit Card payment.  TransID: ' . $this->transaction_id . "\nTender ID: " . $this->auth_code . $currency_comment, 'string');
+        $sql = $db->bindVars($sql, ':orderComments', 'Credit Card payment.  TransID: ' . $this->transaction_id . "\nTender ID: " . $this->auth_code . "\n" . $this->transaction_date . $currency_comment, 'string');
         $sql = $db->bindVars($sql, ':orderID', $insert_id, 'integer');
         $sql = $db->bindVars($sql, ':orderStatus', $this->order_status, 'integer');
         $db->Execute($sql);
+
+        $sql_data_array = [
+            'order_id'       => $insert_id,
+            'location_id'    => $this->getLocationID(),
+            'transaction_id' => $this->transaction_id,
+            'tender_id'      => $this->auth_code,
+            'created_at'     => 'now()',
+        ];
+        zen_db_perform(TABLE_SQUAREUP_PAYMENTS, $sql_data_array);
 
         return true;
     }
 
     /**
-     * Prepare admin-page components
+     * fetch original transaction details, live
      *
-     * @TODO - fetch original transaction details, live, and display here
+     * @param $order_id
+     * @return \SquareConnect\Model\Transaction
+     */
+    function lookupTransactionForOrder($order_id)
+    {
+        global $db;
+        $sql    = "SELECT order_id, location_id, transaction_id, tender_id from " . TABLE_SQUAREUP_PAYMENTS . " WHERE order_id = " . (int)$order_id . " order by id LIMIT 1";
+        $result = $db->Execute($sql);
+        if ($result->EOF) {
+            $transaction = new \SquareConnect\Model\Transaction;
+        } else {
+            $this->getAccessToken();
+            $location_id = $result->fields['location_id'];
+            if (empty($location_id)) $location_id = $this->getLocationID();
+            $api_instance = new \SquareConnect\Api\TransactionsApi();
+            try {
+                $result        = $api_instance->retrieveTransaction($location_id, $result->fields['transaction_id']);
+                $errors_object = $result->getErrors();
+                $transaction   = $result->getTransaction();
+            } catch (\SquareConnect\ApiException $e) {
+                $errors_object = $e->getResponseBody()->errors;
+                $transaction   = new \SquareConnect\Model\Transaction;
+            }
+        }
+
+        return $transaction;
+    }
+
+    /**
+     * Prepare admin-page components
      *
      * @param int $order_id
      * @return string
      */
     function admin_notification($order_id)
     {
-        global $db;
-        $output         = '';
-        $square         = new stdClass;
-        $square->fields = [];
+        global $currencies;
+        $transaction = $this->lookupTransactionForOrder($order_id);
+        $output      = '';
         require(DIR_FS_CATALOG . DIR_WS_MODULES . 'payment/square_support/squareup_admin_notification.php');
 
         return $output;
@@ -586,7 +626,7 @@ class squareup extends base
 
             return $result->getLocations();
         } catch (Exception $e) {
-            trigger_error('Exception when calling LocationApi->listLocations: ' . $e->getMessage(), E_USER_NOTICE);
+            trigger_error('Exception when calling LocationsApi->listLocations: ' . $e->getMessage(), E_USER_NOTICE);
 
             return [];
         }
@@ -660,6 +700,7 @@ class squareup extends base
         if (!defined('MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Sandbox Merchant Token', 'MODULE_PAYMENT_SQUAREUP_SANDBOX_TOKEN', 'sq0atb-nn_yQbQgZaA3VhFEykuYlQ', 'Enter the Sandbox Access Token from your account settings', '6', '0',  now(), 'zen_cfg_password_display')");
         if (!defined('MODULE_PAYMENT_SQUAREUP_TESTING_MODE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Sandbox/Live Mode', 'MODULE_PAYMENT_SQUAREUP_TESTING_MODE', 'Live', 'Use [Live] for real transactions<br>Use [Sandbox] for developer testing', '6', '0', 'zen_cfg_select_option(array(\'Live\', \'Sandbox\'), ', now())");
 
+        $this->tableCheckup();
     }
 
     function remove()
@@ -695,6 +736,28 @@ class squareup extends base
         }
 
         return $keys;
+    }
+
+    /**
+     * Check and fix table structure if appropriate
+     */
+    function tableCheckup()
+    {
+        global $db, $sniffer;
+        if (!$sniffer->table_exists(TABLE_SQUAREUP_PAYMENTS)) {
+            $sql = "
+            CREATE TABLE `" . TABLE_SQUAREUP_PAYMENTS . "` (
+              `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+              `order_id` int(11) UNSIGNED NOT NULL,
+              `location_id` varchar(40) NOT NULL,
+              `transaction_id` varchar(40) NOT NULL,
+              `tender_id` varchar(40),
+              `action` varchar(40),
+              `created_at` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            )";
+            $db->Execute($sql);
+        }
     }
 
     /**
@@ -735,17 +798,15 @@ class squareup extends base
     function _doRefund($oID, $amount = null, $currency_code = null)
     {
         global $db, $messageStack, $currencies;
-        $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
+        $new_order_status = $this->getNewOrderStatus($oID, 'capture', 'refund', (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
         $proceedToRefund = true;
-        $refundNote      = strip_tags(zen_db_input($_POST['refnote']));
         if (isset($_POST['refconfirm']) && $_POST['refconfirm'] != 'on') {
             $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_REFUND_CONFIRM_ERROR, 'error');
             $proceedToRefund = false;
         }
         if (isset($_POST['buttonrefund']) && $_POST['buttonrefund'] == MODULE_PAYMENT_SQUAREUP_ENTRY_REFUND_BUTTON_TEXT) {
-            $amount           = (float)$_POST['refamt'];
-            $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
+            $amount = preg_replace('/[^0-9.,]/', '', $_POST['refamt']);
             if (empty($amount)) {
                 $messageStack->add_session(MODULE_PAYMENT_SQUAREUP_TEXT_INVALID_REFUND_AMOUNT, 'error');
                 $proceedToRefund = false;
@@ -757,14 +818,17 @@ class squareup extends base
         }
         if (!$proceedToRefund) return false;
 
+        $refundNote     = strip_tags(zen_db_input($_POST['refnote']));
         $transaction_id = htmlentities($_POST['trans_id']);
         $tender         = htmlentities($_POST['tender_id']);
 
         // handle currency exchange
-        // @TODO - consider doing currency lookup from $order->info
+        // @TODO - consider adding $order and doing currency lookup from $order->info
         if (empty($currency_code)) $currency_code = $this->gateway_currency;
-        $amount           = $currencies->value($amount, true, $currency_code);
-        $amount_formatted = $currencies->format($amount, true, $currency_code);
+        // @todo - change these to 'true' after fixing rounding issue
+        $amount_formatted = number_format($amount, 2);
+//        $amount_formatted = $currencies->format($amount, false, $currency_code);
+//        $amount           = $currencies->rateAdjusted($amount, false, $currency_code);
 
         $refund_details = [
             'amount_money'    => [
@@ -806,7 +870,7 @@ class squareup extends base
             'orders_id'         => $oID,
             'orders_status_id'  => (int)$new_order_status,
             'date_added'        => 'now()',
-            'comments'          => 'REFUND INITIATED. Trans ID:' . $transaction_id . ' Tender ID:' . $tender . "\n" . ' Refund Amt: ' . $amount_formatted . "\n" . $refundNote,
+            'comments'          => 'REFUND INITIATED.  Refund Amt: ' . $amount_formatted . "\n" . $refundNote,
             'customer_notified' => 0,
         ];
         zen_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
@@ -825,8 +889,7 @@ class squareup extends base
     {
         global $db, $messageStack;
 
-        //@TODO: fetch current order status and determine best status to set this to
-        $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_ORDER_STATUS_ID;
+        $new_order_status = $this->getNewOrderStatus($oID, 'void', 'capture', (int)MODULE_PAYMENT_SQUAREUP_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
 
         $captureNote      = strip_tags(zen_db_input($_POST['captnote']));
@@ -889,7 +952,7 @@ class squareup extends base
     {
         global $db, $messageStack;
 
-        $new_order_status = (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID;
+        $new_order_status = $this->getNewOrderStatus($oID, 'void', (int)MODULE_PAYMENT_SQUAREUP_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
         $voidNote      = strip_tags(zen_db_input($_POST['voidnote'] . $note));
         $voidAuthID    = trim(strip_tags(zen_db_input($_POST['voidauthid'])));
@@ -946,6 +1009,14 @@ class squareup extends base
         return true;
     }
 
+    function getNewOrderStatus($order_id, $action, $default)
+    {
+        //global $order;
+        //@TODO: fetch current order status and determine best status to set this to, based on $action
+
+        return $default;
+    }
+
     function parse_error_response($error_object)
     {
         $msg = '';
@@ -975,9 +1046,6 @@ function zen_cfg_pull_down_square_locations($location, $key = '')
 }
 
 /////////////////////////////
-
-
-
 
 
 // for backward compatibility with older ZC versions before v152 which didn't have this function:

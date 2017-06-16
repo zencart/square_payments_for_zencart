@@ -10,22 +10,74 @@
 
 $outputStartBlock = '';
 $outputMain       = '';
-$outputAuth       = '';
+$outputSquare     = '';
 $outputCapt       = '';
 $outputVoid       = '';
 $outputRefund     = '';
 $outputEndBlock   = '';
 $output           = '';
 
-// strip slashes in case they were added to handle apostrophes:
-foreach ($square->fields as $key => $value) {
-    $square->fields[$key] = stripslashes($value);
-}
 
 $outputStartBlock .= '<td><table class="noprint">' . "\n";
 $outputStartBlock .= '<tr style="background-color : #bbbbbb; border-style : dotted;">' . "\n";
 $outputEndBlock   .= '</tr>' . "\n";
 $outputEndBlock   .= '</table></td>' . "\n";
+
+
+if (!empty($transaction) && $transaction->getId()) {
+    $outputSquare .= '<td valign="top"><table>' . "\n";
+
+    $outputSquare .= '<tr><td class="main">' . "\n";
+    $outputSquare .= 'Transaction ID: ' . "\n";
+    $outputSquare .= '</td><td class="main">' . "\n";
+    $outputSquare .= $transaction->getId() . "\n";
+    $outputSquare .= '</td></tr>' . "\n";
+
+    $outputSquare .= '<tr><td class="main">' . "\n";
+    $outputSquare .= 'Reference: ' . "\n";
+    $outputSquare .= '</td><td class="main">' . "\n";
+    $outputSquare .= zen_output_string_protected($transaction->getReferenceId()) . "\n";
+    $outputSquare .= '</td></tr>' . "\n";
+
+//    $outputSquare .= '<tr><td class="main">' . "\n";
+//    $outputSquare .= 'Square Service: ' . "\n";
+//    $outputSquare .= '</td><td class="main">' . "\n";
+//    $outputSquare .= $transaction->getProduct() . "\n";
+//    $outputSquare .= '</td></tr>' . "\n";
+
+    $outputSquare .= '<tr><td class="main">' . "\n";
+    $outputSquare .= '<strong>Payments Tendered: </strong>' . "\n";
+    $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
+    $payments     = $transaction->getTenders();
+    foreach ($payments as $payment) {
+        $currency_code = $payment->getAmountMoney()->getCurrency();
+        $amount = $currencies->format($payment->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+        $outputSquare .= '<tr><td class="main">' . "\n";
+        $outputSquare .= $payment->getCreatedAt() . "\n<br>" . $payment->getId();
+        $outputSquare .= '</td><td class="main">' . "\n";
+        $outputSquare .= $amount . ' ' . $currency_code . "\n";
+        if ($payment->getNote()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($payment->getNote()));
+        $outputSquare .= '</td></tr>' . "\n";
+    }
+    $refunds = $transaction->getRefunds();
+    if (count($refunds)) {
+        $outputSquare .= '<tr><td class="main">' . "\n";
+        $outputSquare .= '<strong>Refunds: </strong>' . "\n";
+        $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
+        foreach ($refunds as $refund) {
+            $currency_code = $refund->getAmountMoney()->getCurrency();
+            $amount = $currencies->format($refund->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+            $outputSquare .= '<tr><td class="main">' . "\n";
+            $outputSquare .= $refund->getCreatedAt() . "\n<br>" . $refund->getId() . "\n";
+            $outputSquare .= '</td><td class="main">' . "\n";
+            $outputSquare .= '-' . $amount . ' ' . $currency_code . ' ' . $refund->getStatus() . "\n";
+            if ($refund->getReason()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($refund->getReason()));
+            $outputSquare .= '</td></tr>' . "\n";
+        }
+    }
+
+    $outputSquare .= '</table></td>' . "\n";
+}
 
 
 if (method_exists($this, '_doRefund')) {
@@ -79,6 +131,11 @@ if (method_exists($this, '_doVoid')) {
 if (defined('MODULE_PAYMENT_SQUAREUP_STATUS') && MODULE_PAYMENT_SQUAREUP_STATUS != '') {
     $output = '<!-- BOF: square admin transaction processing tools -->';
     $output .= $outputStartBlock;
+    $output .= $outputSquare;
+    $output .= $outputEndBlock;
+    $output .= '</tr><tr>' . "\n";
+    $output .= $outputStartBlock;
+
     if (MODULE_PAYMENT_SQUAREUP_TRANSACTION_TYPE == 'authorize' || (isset($_GET['authcapt']) && $_GET['authcapt'] == 'on')) {
         if (method_exists($this, '_doRefund')) $output .= $outputRefund;
         if (method_exists($this, '_doCapt')) $output .= $outputCapt;
