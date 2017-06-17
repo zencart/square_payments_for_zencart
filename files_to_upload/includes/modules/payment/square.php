@@ -11,7 +11,7 @@
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
 
-if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', 'square_payments');
+if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
 
 /**
  * Square Payments module class
