@@ -23,51 +23,48 @@ class square extends base
      *
      * @var string
      */
-    var $code;
+    public $code;
     /**
      * $moduleVersion is the plugin version number
      */
-    var $moduleVersion = '0.50';
+    public $moduleVersion = '0.60';
     /**
      * $title is the displayed name for this payment method
      *
      * @var string
      */
-    var $title;
+    public $title;
     /**
      * $description is admin-display details for this payment method
      *
      * @var string
      */
-    var $description;
+    public $description;
     /**
      * $enabled determines whether this module shows or not... in catalog.
      *
      * @var boolean
      */
-    var $enabled;
+    public $enabled;
     /**
      * $sort_order determines the display-order of this module to customers
      */
-    var $sort_order;
+    public $sort_order;
     /**
      * $commError and $commErrNo are CURL communication error details for debug purposes
      */
-    var $commError, $commErrNo;
+    protected $commError, $commErrNo;
     /**
      * transaction vars hold the IDs of the completed payment
      */
-    var $transaction_id, $transaction_messages, $auth_code;
-    /**
-     * internal vars
-     */
-    private $avs_codes, $cvv_codes;
+    public $transaction_id, $transaction_messages, $auth_code;
+    protected $currency_comment;
 
 
     /**
      * Constructor
      */
-    function __construct()
+    public function __construct()
     {
         global $order;
 
@@ -115,7 +112,7 @@ class square extends base
     }
 
 
-    function update_status()
+    public function update_status()
     {
         global $order, $db;
         if ($this->enabled == false || (int)MODULE_PAYMENT_SQUARE_ZONE == 0) {
@@ -139,12 +136,12 @@ class square extends base
 
     }
 
-    function javascript_validation()
+    public function javascript_validation()
     {
         return '';
     }
 
-    function selection()
+    public function selection()
     {
         // helper for auto-selecting the radio-button next to this module so the user doesn't have to make that choice
         $onFocus = ' onfocus="methodSelect(\'pmt-' . $this->code . '\')"';
@@ -185,7 +182,7 @@ class square extends base
         return $selection;
     }
 
-    function pre_confirmation_check()
+    public function pre_confirmation_check()
     {
         global $messageStack;
         if (!isset($_POST['nonce']) || trim($_POST['nonce']) == '') {
@@ -194,7 +191,7 @@ class square extends base
         }
     }
 
-    function confirmation()
+    public function confirmation()
     {
         $confirmation = [
             'fields' => [
@@ -216,7 +213,7 @@ class square extends base
         return $confirmation;
     }
 
-    function process_button()
+    public function process_button()
     {
         $process_button_string = zen_draw_hidden_field($this->code . '_nonce', $_POST['nonce']);
         $process_button_string .= zen_draw_hidden_field('cc_type', zen_output_string_protected($_POST[$this->code . '_cc_type']));
@@ -226,7 +223,7 @@ class square extends base
         return $process_button_string;
     }
 
-    function before_process()
+    public function before_process()
     {
         global $messageStack, $order, $currencies;
 
@@ -304,6 +301,7 @@ class square extends base
 
         $api_instance = new \SquareConnect\Api\TransactionsApi();
         $body         = new \SquareConnect\Model\ChargeRequest($request_body);
+
         if (MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live') {
             $body->offsetSet('integration_id', 'sqi_' . 'b6ff0cd7acc14f7a' . 'b24200041d066ba6'); // required
         }
@@ -329,7 +327,7 @@ class square extends base
             zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
         }
 
-        if (!empty($transaction->getId())) {
+        if ($transaction->getId()) {
             $tenders                = $transaction->getTenders();
             $this->auth_code        = $tenders[0]['id']; // since Square doesn't supply an auth code, we use the tender-id instead, since it is required for submitting refunds
             $this->transaction_id   = $transaction->getId();
@@ -348,7 +346,7 @@ class square extends base
      *
      * @return boolean
      */
-    function after_process()
+    public function after_process()
     {
         global $insert_id, $db, $order, $currencies;
         $sql = "insert into " . TABLE_ORDERS_STATUS_HISTORY . " (comments, orders_id, orders_status_id, customer_notified, date_added) values (:orderComments, :orderID, :orderStatus, -1, now() )";
@@ -375,7 +373,7 @@ class square extends base
      * @param $order_id
      * @return \SquareConnect\Model\Transaction
      */
-    function lookupTransactionForOrder($order_id)
+    protected function lookupTransactionForOrder($order_id)
     {
         global $db;
         $sql    = "SELECT order_id, location_id, transaction_id, tender_id from " . TABLE_SQUARE_PAYMENTS . " WHERE order_id = " . (int)$order_id . " order by id LIMIT 1";
@@ -400,7 +398,7 @@ class square extends base
         return $transaction;
     }
 
-    function transactionDetails($order_id)
+    public function transactionDetails($order_id)
     {
         global $currencies;
         $transaction              = $this->lookupTransactionForOrder($order_id);
@@ -433,7 +431,7 @@ class square extends base
      * @param int $order_id
      * @return string
      */
-    function admin_notification($order_id)
+    public function admin_notification($order_id)
     {
         global $currencies;
         $transaction = $this->lookupTransactionForOrder($order_id);
@@ -445,7 +443,7 @@ class square extends base
 
 
 // SIMPLIFIED OAUTH TOKENIZATION
-    function getAccessToken()
+    protected function getAccessToken()
     {
         $this->token_refresh_check();
         $access_token = (string)(MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live' ? MODULE_PAYMENT_SQUARE_ACCESS_TOKEN : MODULE_PAYMENT_SQUARE_SANDBOX_TOKEN);
@@ -456,7 +454,7 @@ class square extends base
         return $access_token;
     }
 
-    function isTokenExpired($difference = '')
+    protected function isTokenExpired($difference = '')
     {
         if (MODULE_PAYMENT_SQUARE_REFRESH_EXPIRES_AT == '') return true;
         $expiry = new DateTime(MODULE_PAYMENT_SQUARE_REFRESH_EXPIRES_AT);  // formatted as '2016-08-10T19:42:08Z'
@@ -473,7 +471,7 @@ class square extends base
     }
 
     // called by module and by cron job
-    function token_refresh_check()
+    public function token_refresh_check()
     {
         if (MODULE_PAYMENT_SQUARE_APPLICATION_ID == '') return 'not configured';
 
@@ -514,7 +512,7 @@ class square extends base
         return 'not expired';
     }
 
-    function disableDueToInvalidAccessToken()
+    protected function disableDueToInvalidAccessToken()
     {
         if (MODULE_PAYMENT_SQUARE_REFRESH_EXPIRES_AT == '' || MODULE_PAYMENT_SQUARE_ACCESS_TOKEN == '') return;
         global $db;
@@ -526,7 +524,7 @@ class square extends base
             E_USER_ERROR);
     }
 
-    function getRefreshToken()
+    protected function getRefreshToken()
     {
         $url  = 'https://connect.squareup.com/oauth2/clients/' . MODULE_PAYMENT_SQUARE_APPLICATION_ID . '/access-token/renew';
         $body = '{"access_token": "' . MODULE_PAYMENT_SQUARE_ACCESS_TOKEN . '"}';
@@ -558,7 +556,7 @@ class square extends base
         return false;
     }
 
-    function setAccessToken($json_payload)
+    protected function setAccessToken($json_payload)
     {
         global $db;
         $payload = json_decode($json_payload, true);
@@ -570,7 +568,7 @@ class square extends base
     }
 
 
-    function getAuthorizeURL()
+    public function getAuthorizeURL()
     {
         $url    = 'https://connect.squareup.com/oauth2/authorize?';
         $params = http_build_query(
@@ -584,7 +582,7 @@ class square extends base
         // example: code=sq0abc-D1efG2HIJK345lmno6PqR78S9Tuv0WxY&response_type=code
     }
 
-    function exchangeForToken($token_redeem_code)
+    public function exchangeForToken($token_redeem_code)
     {
         $url  = 'https://connect.squareup.com/oauth2/token';
         $body = json_encode(
@@ -621,7 +619,7 @@ class square extends base
         }
     }
 
-    function getLocationDetails()
+    protected function getLocationDetails()
     {
         $location = new stdClass;
 
@@ -646,7 +644,7 @@ class square extends base
         return $location;
     }
 
-    function getLocationsList()
+    protected function getLocationsList()
     {
         if (MODULE_PAYMENT_SQUARE_ACCESS_TOKEN == '') return null;
         $this->getAccessToken();
@@ -672,7 +670,7 @@ class square extends base
         }
     }
 
-    function getLocationsPulldownArray()
+    public function getLocationsPulldownArray()
     {
         $locations = $this->getLocationsList();
         if (empty($locations)) return [];
@@ -689,7 +687,7 @@ class square extends base
      * format purchase amount
      * Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD the amount is in cents.
      */
-    function convert_to_cents($amount, $currency = null)
+    protected function convert_to_cents($amount, $currency = null)
     {
         global $currencies, $order;
         if (empty($currency)) $currency = (isset($order) && isset($order->info['currency'])) ? $order->info['currency'] : $this->gateway_currency;
@@ -707,7 +705,7 @@ class square extends base
         return (int)($amount * 10 ** $decimal_places);
     }
 
-    function convert_from_cents($amount, $currency_code = null)
+    protected function convert_from_cents($amount, $currency_code = null)
     {
         global $currencies, $order;
         if (empty($currency)) $currency = (isset($order) && isset($order->info['currency'])) ? $order->info['currency'] : $this->gateway_currency;
@@ -726,7 +724,7 @@ class square extends base
 
     }
 
-    function check()
+    public function check()
     {
         global $db;
         if (!isset($this->_check)) {
@@ -739,20 +737,19 @@ class square extends base
     }
 
     /** Install required configuration keys */
-    function install()
+    public function install()
     {
         global $db;
 
         if (!defined('MODULE_PAYMENT_SQUARE_STATUS')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Square Module', 'MODULE_PAYMENT_SQUARE_STATUS', 'True', 'Do you want to accept Square payments?', '6', '0', 'zen_cfg_select_option(array(\'True\', \'False\'), ', now())");
+        if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application ID', 'MODULE_PAYMENT_SQUARE_APPLICATION_ID', 'sq0idp-', 'Enter the Application ID from your App settings', '6', '0',  now(), 'zen_cfg_password_display')");
+        if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_SECRET')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application Secret (OAuth)', 'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET', 'sq0csp-', 'Enter the Application Secret from your App OAuth settings', '6', '0',  now(), 'zen_cfg_password_display')");
+        if (!defined('MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?<br>NOTE: If you use [authorize] then you must manually capture each payment within 6 days or it will be voided automatically.', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
+        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('<hr>Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
         if (!defined('MODULE_PAYMENT_SQUARE_SORT_ORDER')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('<hr>Sort order of display.', 'MODULE_PAYMENT_SQUARE_SORT_ORDER', '0', 'Sort order of displaying payment options to the customer. Lowest is displayed first.', '6', '0', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ZONE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, use_function, set_function, date_added) values ('Payment Zone', 'MODULE_PAYMENT_SQUARE_ZONE', '0', 'If a zone is selected, only enable this payment method for that zone.', '6', '2', 'zen_get_zone_class_title', 'zen_cfg_pull_down_zone_classes(', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Order Status', 'MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID', '2', 'Set the status of Paid orders made with this payment module to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) values ('Set Refunded Order Status', 'MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID', '1', 'Set the status of refunded orders to this value', '6', '0', 'zen_cfg_pull_down_order_statuses(', 'zen_get_order_status_name', now())");
-        if (!defined('MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?<br>NOTE: If you use [authorize] then you must manually capture each payment within 6 days or it will be voided automatically.', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
-        if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application ID', 'MODULE_PAYMENT_SQUARE_APPLICATION_ID', 'sq0idp-', 'Enter the Application ID from your App settings', '6', '0',  now(), 'zen_cfg_password_display')");
-        if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_SECRET')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application Secret (OAuth)', 'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET', 'sq0csp-', 'Enter the Application Secret from your App OAuth settings', '6', '0',  now(), 'zen_cfg_password_display')");
-        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('<hr>Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
-
         if (!defined('MODULE_PAYMENT_SQUARE_LOGGING')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Log Mode', 'MODULE_PAYMENT_SQUARE_LOGGING', 'Log on Failures and Email on Failures', 'Would you like to enable debug mode?  A complete detailed log of failed transactions may be emailed to the store owner.', '6', '0', 'zen_cfg_select_option(array(\'Off\', \'Log Always\', \'Log on Failures\', \'Log Always and Email on Failures\', \'Log on Failures and Email on Failures\', \'Email Always\', \'Email on Failures\'), ', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ACCESS_TOKEN')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Live Merchant Token', 'MODULE_PAYMENT_SQUARE_ACCESS_TOKEN', '', 'Enter the Access Token for Live transactions from your account settings', '6', '0',  now(), 'zen_cfg_password_display')");
         if (!defined('MODULE_PAYMENT_SQUARE_REFRESH_EXPIRES_AT')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Square Refresh Token (read only)', 'MODULE_PAYMENT_SQUARE_REFRESH_EXPIRES_AT', '', 'DO NOT EDIT', '6', '0',  now(), '')");
@@ -763,13 +760,13 @@ class square extends base
         $this->tableCheckup();
     }
 
-    function remove()
+    public function remove()
     {
         global $db;
         $db->Execute("delete from " . TABLE_CONFIGURATION . " where configuration_key like 'MODULE\_PAYMENT\_SQUARE\_%'");
     }
 
-    function keys()
+    public function keys()
     {
         $keys = [
             'MODULE_PAYMENT_SQUARE_STATUS',
@@ -800,7 +797,7 @@ class square extends base
     /**
      * Check and fix table structure if appropriate
      */
-    function tableCheckup()
+    protected function tableCheckup()
     {
         global $db, $sniffer;
         if (!$sniffer->table_exists(TABLE_SQUARE_PAYMENTS)) {
@@ -854,7 +851,7 @@ class square extends base
     /**
      * Refund for a given transaction+tender
      */
-    function _doRefund($oID, $amount = null, $currency_code = null)
+    public function _doRefund($oID, $amount = null, $currency_code = null)
     {
         global $db, $messageStack, $currencies;
 
@@ -943,7 +940,7 @@ class square extends base
     /**
      * Capture a previously-authorized transaction.
      */
-    function _doCapt($oID, $type = 'Complete', $amount = null, $currency = null)
+    public function _doCapt($oID, $type = 'Complete', $amount = null, $currency = null)
     {
         global $db, $messageStack;
 
@@ -1005,7 +1002,7 @@ class square extends base
     /**
      * Void an not-yet-captured authorized transaction.
      */
-    function _doVoid($oID, $note = '')
+    public function _doVoid($oID, $note = '')
     {
         global $db, $messageStack;
 
@@ -1064,7 +1061,7 @@ class square extends base
         return true;
     }
 
-    function getNewOrderStatus($order_id, $action, $default)
+    protected function getNewOrderStatus($order_id, $action, $default)
     {
         //global $order;
         //@TODO: fetch current order status and determine best status to set this to, based on $action
@@ -1072,7 +1069,7 @@ class square extends base
         return $default;
     }
 
-    function parse_error_response($error_object)
+    protected function parse_error_response($error_object)
     {
         $msg = '';
         foreach ($error_object as $err) {
