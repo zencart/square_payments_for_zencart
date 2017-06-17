@@ -359,7 +359,7 @@ class square extends base
 
         $sql_data_array = [
             'order_id'       => $insert_id,
-            'location_id'    => $this->getLocationDetails(),
+            'location_id'    => $this->getLocationDetails()->id,
             'transaction_id' => $this->transaction_id,
             'tender_id'      => $this->auth_code,
             'created_at'     => 'now()',
@@ -385,7 +385,7 @@ class square extends base
         } else {
             $this->getAccessToken();
             $location_id = $result->fields['location_id'];
-            if (empty($location_id)) $location_id = $this->getLocationDetails();
+            if (empty($location_id)) $location_id = $this->getLocationDetails()->id;
             $api_instance = new \SquareConnect\Api\TransactionsApi();
             try {
                 $result        = $api_instance->retrieveTransaction($location_id, $result->fields['transaction_id']);
@@ -625,10 +625,10 @@ class square extends base
     {
         $location = new stdClass;
 
-        $data = trim((string)MODULE_PAYMENT_SQUARE_LOCATION_ID);
+        $data = trim((string)MODULE_PAYMENT_SQUARE_LOCATION);
 
         // this splits it out from stored format of: LocationName:[LocationID]:CurrencyCode
-        preg_match('/(.+(?<!:\[)):\[(.+(?<!]:))]:([A-Z]{3})/', $data, $matches);
+        preg_match('/(.+(?<!:\[)):\[(.+(?<!]:))]:([A-Z]{3})?/', $data, $matches);
 
         $location->name     = $matches[1];
         $location->id       = $matches[2];
@@ -658,7 +658,7 @@ class square extends base
 
             // Square hasn't yet put currency_code into their v2 API, so we have to look it up using the old v1 API and match things up
             $first_location = $locations[0];
-            if (!method_exists($first_location, 'getCurrencyCode')) {
+            if (!method_exists($first_location, 'getCurrencyCode') && MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live') {
                 $api_instance = new SquareConnect\Api\V1LocationsApi;
                 $locations    = $api_instance->listLocations();
             }
@@ -679,7 +679,7 @@ class square extends base
         $locations_pulldown = [];
         foreach ($locations as $key => $value) {
             // This causes us to store this as: LocationName:[LocationID]:CurrencyCode
-            $locations_pulldown[] = ['id' => $value->getName() . ' :[' . $value->getId() . ']:' . $value->getCurrencyCode(), 'text' => $value->getName()];
+            $locations_pulldown[] = ['id' => $value->getName() . ':[' . $value->getId() . ']:' . (method_exists($value, 'getCurrencyCode') ? $value->getCurrencyCode() : 'USD'), 'text' => $value->getName()];
         }
 
         return $locations_pulldown;
@@ -751,7 +751,7 @@ class square extends base
         if (!defined('MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Transaction Type', 'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE', 'purchase', 'Should payments be [authorized] only, or be completed [purchases]?<br>NOTE: If you use [authorize] then you must manually capture each payment within 6 days or it will be voided automatically.', '6', '0', 'zen_cfg_select_option(array(\'authorize\', \'purchase\'), ', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application ID', 'MODULE_PAYMENT_SQUARE_APPLICATION_ID', 'sq0idp-', 'Enter the Application ID from your App settings', '6', '0',  now(), 'zen_cfg_password_display')");
         if (!defined('MODULE_PAYMENT_SQUARE_APPLICATION_SECRET')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Application Secret (OAuth)', 'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET', 'sq0csp-', 'Enter the Application Secret from your App OAuth settings', '6', '0',  now(), 'zen_cfg_password_display')");
-        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION_ID')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('<hr>Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION_ID', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
+        if (!defined('MODULE_PAYMENT_SQUARE_LOCATION')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, set_function) values ('<hr>Location ID', 'MODULE_PAYMENT_SQUARE_LOCATION', '', 'Enter the (Store) Location ID from your account settings. You can have multiple locations configured in your account; this setting lets you specify which location your sales should be attributed to.', '6', '0',  now(), 'zen_cfg_pull_down_square_locations(')");
 
         if (!defined('MODULE_PAYMENT_SQUARE_LOGGING')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Log Mode', 'MODULE_PAYMENT_SQUARE_LOGGING', 'Log on Failures and Email on Failures', 'Would you like to enable debug mode?  A complete detailed log of failed transactions may be emailed to the store owner.', '6', '0', 'zen_cfg_select_option(array(\'Off\', \'Log Always\', \'Log on Failures\', \'Log Always and Email on Failures\', \'Log on Failures and Email on Failures\', \'Email Always\', \'Email on Failures\'), ', now())");
         if (!defined('MODULE_PAYMENT_SQUARE_ACCESS_TOKEN')) $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, use_function) values ('Live Merchant Token', 'MODULE_PAYMENT_SQUARE_ACCESS_TOKEN', '', 'Enter the Access Token for Live transactions from your account settings', '6', '0',  now(), 'zen_cfg_password_display')");
@@ -776,7 +776,7 @@ class square extends base
             'MODULE_PAYMENT_SQUARE_APPLICATION_ID',
             'MODULE_PAYMENT_SQUARE_APPLICATION_SECRET',
             'MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE',
-            'MODULE_PAYMENT_SQUARE_LOCATION_ID',
+            'MODULE_PAYMENT_SQUARE_LOCATION',
             'MODULE_PAYMENT_SQUARE_SORT_ORDER',
             'MODULE_PAYMENT_SQUARE_ZONE',
             'MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID',
@@ -898,7 +898,7 @@ class square extends base
         $this->logTransactionData([['comment' => 'Creating refund request']], $refund_details);
 
         $this->getAccessToken();
-        $location_id  = $this->getLocationDetails();
+        $location_id  = $this->getLocationDetails()->id;
         $api_instance = new SquareConnect\Api\TransactionsApi();
         try {
             $result        = $api_instance->createRefund($location_id, $transaction_id, $request_body);
@@ -964,7 +964,7 @@ class square extends base
         $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
-        $location_id  = $this->getLocationDetails();
+        $location_id  = $this->getLocationDetails()->id;
         $api_instance = new SquareConnect\Api\TransactionsApi();
         try {
             $result        = $api_instance->captureTransaction($location_id, $transaction_id);
@@ -1027,7 +1027,7 @@ class square extends base
         $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
-        $location_id  = $this->getLocationDetails();
+        $location_id  = $this->getLocationDetails()->id;
         $api_instance = new \SquareConnect\Api\TransactionsApi();
         try {
             $result        = $api_instance->voidTransaction($location_id, $transaction_id);
