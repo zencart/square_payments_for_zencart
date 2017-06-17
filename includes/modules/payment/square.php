@@ -247,15 +247,16 @@ class square extends base
         $this->getAccessToken();
         $location = $this->getLocationDetails();
 
-        $payment_amount   = $order->info['total'];
-        $currency_code    = strtoupper($order->info['currency']);
+        $payment_amount = $order->info['total'];
+        $currency_code  = strtoupper($order->info['currency']);
+
         $this->currency_comment = '';
 
         // force conversion to Square Account's currency:
         if ($order->info['currency'] != $location->currency) {
             global $currencies;
-            $payment_amount   = number_format($order->info['total'] * $currencies->get_value($location->currency), 2);
-            $currency_code    = $location->currency;
+            $payment_amount         = number_format($order->info['total'] * $currencies->get_value($location->currency), 2);
+            $currency_code          = $location->currency;
             $this->currency_comment = '(Converted from: ' . number_format($order->info['total'] * $order->info['currency_value'], 2) . ' ' . $order->info['currency'] . ')';
             // @TODO - if Square adds support for transmission of tax and shipping amounts, these may need recalculation here too
         }
@@ -402,26 +403,26 @@ class square extends base
     function transactionDetails($order_id)
     {
         global $currencies;
-        $transaction = $this->lookupTransactionForOrder($order_id);
-        $payments      = $transaction->getTenders();
-        $payment_created_at = null;
-        $this->transaction_status   = '';
+        $transaction              = $this->lookupTransactionForOrder($order_id);
+        $payments                 = $transaction->getTenders();
+        $payment_created_at       = null;
+        $this->transaction_status = '';
         foreach ($payments as $payment) {
             $this->transaction_status = $payment->getCardDetails()->getStatus();
             if (!$payment_created_at) $payment_created_at = $payment->getCreatedAt();
             $currency_code = $payment->getAmountMoney()->getCurrency();
-            $amount = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
-            $date = $payment->getCreatedAt();
-            $id = $payment->getId();
+            $amount        = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+            $date          = $payment->getCreatedAt();
+            $id            = $payment->getId();
         }
         $refunds = $transaction->getRefunds();
         if (count($refunds)) {
             foreach ($refunds as $refund) {
                 $currency_code = $refund->getAmountMoney()->getCurrency();
-                $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
-                $date = $refund->getCreatedAt();
-                $id = $refund->getId();
-                $status = $refund->getStatus();
+                $amount        = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+                $date          = $refund->getCreatedAt();
+                $id            = $refund->getId();
+                $status        = $refund->getStatus();
             }
         }
     }
@@ -626,18 +627,19 @@ class square extends base
 
         $data = trim((string)MODULE_PAYMENT_SQUARE_LOCATION_ID);
 
+        // this splits it out from stored format of: LocationName:[LocationID]:CurrencyCode
         preg_match('/(.+(?<!:\[)):\[(.+(?<!]:))]:([A-Z]{3})/', $data, $matches);
 
-        $location->name = $matches[1];
-        $location->id = $matches[2];
+        $location->name     = $matches[1];
+        $location->id       = $matches[2];
         $location->currency = $matches[3];
 
         if (empty($data)) {
             $locations = $this->getLocationsList();
             if ($locations == null) return '';
-            $first_location = $locations[0];
-            $location->id = $first_location->getId();
-            $location->name = $first_location->getName();
+            $first_location     = $locations[0];
+            $location->id       = $first_location->getId();
+            $location->name     = $first_location->getName();
             $location->currency = $first_location->getCurrencyCode();
         }
 
@@ -650,7 +652,7 @@ class square extends base
         $this->getAccessToken();
         $api_instance = new SquareConnect\Api\LocationsApi();
         try {
-            $result = $api_instance->listLocations();
+            $result    = $api_instance->listLocations();
             $locations = $result->getLocations();
 
 
@@ -658,7 +660,7 @@ class square extends base
             $first_location = $locations[0];
             if (!method_exists($first_location, 'getCurrencyCode')) {
                 $api_instance = new SquareConnect\Api\V1LocationsApi;
-                $locations = $api_instance->listLocations();
+                $locations    = $api_instance->listLocations();
             }
 
             return $locations;
@@ -676,16 +678,17 @@ class square extends base
         if (empty($locations)) return [];
         $locations_pulldown = [];
         foreach ($locations as $key => $value) {
+            // This causes us to store this as: LocationName:[LocationID]:CurrencyCode
             $locations_pulldown[] = ['id' => $value->getName() . ' :[' . $value->getId() . ']:' . $value->getCurrencyCode(), 'text' => $value->getName()];
         }
 
         return $locations_pulldown;
     }
 
-/**
- * format purchase amount
- * Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD the amount is in cents.
- */
+    /**
+     * format purchase amount
+     * Monetary amounts are specified in the smallest unit of the applicable currency. ie: for USD the amount is in cents.
+     */
     function convert_to_cents($amount, $currency = null)
     {
         global $currencies, $order;
@@ -873,14 +876,14 @@ class square extends base
         }
         if (!$proceedToRefund) return false;
 
-        $refundNote     = strip_tags(zen_db_input($_POST['refnote']));
+        $refundNote = strip_tags(zen_db_input($_POST['refnote']));
 
-        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction    = $this->lookupTransactionForOrder($oID);
         $transaction_id = $transaction->getId();
-        $payments = $transaction->getTenders();
-        $payment = $payments[0];
-        $tender_id = $payment->getId();
-        $currency_code = $payment->getAmountMoney()->getCurrency();
+        $payments       = $transaction->getTenders();
+        $payment        = $payments[0];
+        $tender_id      = $payment->getId();
+        $currency_code  = $payment->getAmountMoney()->getCurrency();
 
         $refund_details = [
             'amount_money'    => [
@@ -918,7 +921,7 @@ class square extends base
         }
 
         $currency_code = $transaction->getAmountMoney()->getCurrency();
-        $amount = $currencies->format($transaction->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
+        $amount        = $currencies->format($transaction->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code);
 
         // Success, so save the results
         $sql_data_array = [
@@ -947,7 +950,7 @@ class square extends base
         $new_order_status = $this->getNewOrderStatus($oID, 'capture', (int)MODULE_PAYMENT_SQUARE_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
 
-        $captureNote      = strip_tags(zen_db_input($_POST['captnote']));
+        $captureNote = strip_tags(zen_db_input($_POST['captnote']));
 
         $proceedToCapture = true;
         if (!isset($_POST['captconfirm']) || $_POST['captconfirm'] != 'on') {
@@ -957,7 +960,7 @@ class square extends base
 
         if (!$proceedToCapture) return false;
 
-        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction    = $this->lookupTransactionForOrder($oID);
         $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
@@ -1009,7 +1012,7 @@ class square extends base
         $new_order_status = $this->getNewOrderStatus($oID, 'void', (int)MODULE_PAYMENT_SQUARE_REFUNDED_ORDER_STATUS_ID);
         if ($new_order_status == 0) $new_order_status = 1;
 
-        $voidNote      = strip_tags(zen_db_input($_POST['voidnote'] . $note));
+        $voidNote = strip_tags(zen_db_input($_POST['voidnote'] . $note));
 
         $proceedToVoid = true;
         if (isset($_POST['ordervoid']) && $_POST['ordervoid'] == MODULE_PAYMENT_SQUARE_ENTRY_VOID_BUTTON_TEXT) {
@@ -1020,7 +1023,7 @@ class square extends base
         }
         if (!$proceedToVoid) return false;
 
-        $transaction = $this->lookupTransactionForOrder($oID);
+        $transaction    = $this->lookupTransactionForOrder($oID);
         $transaction_id = $transaction->getId();
 
         $this->getAccessToken();
