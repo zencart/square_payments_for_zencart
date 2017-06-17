@@ -96,3 +96,10 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
         });
     });
 </script>
+
+
+<style>
+.paymentInput {display:inline;font-size:1em;margin:0 0.1em 10px 0;height:35px;padding-left:5px;width:50%;}
+.paymentInput {background-color: white;border:3px solid #ccc;}
+.paymentInput--error {color: red; border-color: red;}
+</style>

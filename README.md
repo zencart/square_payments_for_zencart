@@ -38,7 +38,7 @@ You must have a Square account. You may create a Square merchant account at [squ
 ## Installation
 
 ### PHP Files
-Simply upload these files into the corresponding folders on your own store:
+Simply upload these files from `files_to_upload` into the corresponding folders on your own store:
 
 `/square_handler.php`
 
@@ -52,7 +52,7 @@ Simply upload these files into the corresponding folders on your own store:
 
 `/includes/modules/pages/checkout_payment/jscript_square.php`
 
-**Note: You should not copy the README.md, LICENSE or changelog.txt files to your live server.**
+**Note: You should not copy the README.md, LICENSE or CHANGELOG.md files to your live server.**
 
  
 ## Configure the Square Module in your store Admin
@@ -104,8 +104,9 @@ If you are receiving errors from Square or are having problems configuring setti
 If you are running into difficulty configuring the module in your store, or are getting "unusual" errors during checkout, report your issue on the Zen Cart Support Site at https://www.zen-cart.com/forum.php (create a free account profile in order to post)
 
 ### Common errors
-- "nonce" failures:  This is typically caused by javascript or jquery conflicts in your checkout pages
-- the fields for credit card numbers are flat with no text box to type into: This typically means you're missing the jscript_square.php file as described earlier in the Installation instructions. Or you've got a firewall or browser plugin blocking access to Square's javascript code
+1. "nonce" failures:  This is typically caused by javascript or jQuery conflicts in your checkout pages
+
+2. If you find the input fields for credit card numbers are flat with no text box to type into, this typically means you're missing the `jscript_square.php` file as described earlier in the Installation Instructions. Or you've got a firewall or browser plugin blocking access to Square's javascript code. Or you've got a plugin having jQuery conflicts.
 
 
 
