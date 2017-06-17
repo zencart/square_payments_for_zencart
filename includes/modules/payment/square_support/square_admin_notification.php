@@ -69,7 +69,6 @@ if (!empty($transaction) && $transaction->getId()) {
         $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
         foreach ($refunds as $refund) {
             $currency_code = $refund->getAmountMoney()->getCurrency();
-            $amount = $currencies->format($refund->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code) ;
             $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
             $outputSquare .= '<tr><td class="main">' . "\n";
             $outputSquare .= '-' . $amount . ' ' . $currency_code . ' ' . $refund->getStatus() . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $refund->getCreatedAt() . "\n";
