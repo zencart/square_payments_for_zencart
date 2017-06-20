@@ -27,7 +27,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '0.60';
+    public $moduleVersion = '0.70';
     /**
      * $title is the displayed name for this payment method
      *
@@ -66,10 +66,10 @@ class square extends base
      */
     public function __construct()
     {
-        global $order;
-
         require DIR_FS_CATALOG . DIR_WS_CLASSES . 'vendors/square/connect/autoload.php';
+        require_once DIR_FS_CATALOG . 'includes/modules/payment/square_support/ZenCartChargeRequest.php';
 
+        global $order;
         $this->code        = 'square';
         $this->enabled     = ((MODULE_PAYMENT_SQUARE_STATUS == 'True') ? true : false);
         $this->sort_order  = MODULE_PAYMENT_SQUARE_SORT_ORDER;
@@ -259,39 +259,39 @@ class square extends base
         }
 
         $billing_address = [
-            'address_line'                    => $order->billing['street_address'],
-            'address_line_2'                  => $order->billing['suburb'],
-            'locality'                        => $order->billing['city'],
-            'administrative_district_level_1' => zen_get_zone_code($order->billing['country']['id'], $order->billing['zone_id'], $order->billing['state']),
-            'postal_code'                     => $order->billing['postcode'],
-            'country'                         => $order->billing['country']['iso_code_2'],
-            'last_name'                       => $order->billing['lastname'],
-            'organization'                    => $order->billing['company'],
+            'address_line'                    => (string)$order->billing['street_address'],
+            'address_line_2'                  => (string)$order->billing['suburb'],
+            'locality'                        => (string)$order->billing['city'],
+            'administrative_district_level_1' => (string)zen_get_zone_code($order->billing['country']['id'], $order->billing['zone_id'], $order->billing['state']),
+            'postal_code'                     => (string)$order->billing['postcode'],
+            'country'                         => (string)$order->billing['country']['iso_code_2'],
+            'last_name'                       => (string)$order->billing['lastname'],
+            'organization'                    => (string)$order->billing['company'],
         ];
         if ($order->delivery !== false && isset($order->delivery['street_address'])) {
             $shipping_address = [
-                'address_line'                    => $order->delivery['street_address'],
-                'address_line_2'                  => $order->delivery['suburb'],
-                'locality'                        => $order->delivery['city'],
-                'administrative_district_level_1' => zen_get_zone_code($order->delivery['country']['id'], $order->delivery['zone_id'], $order->delivery['state']),
-                'postal_code'                     => $order->delivery['postcode'],
-                'country'                         => $order->delivery['country']['iso_code_2'],
-                'last_name'                       => $order->delivery['lastname'],
-                'organization'                    => $order->delivery['company'],
+                'address_line'                    => (string)$order->delivery['street_address'],
+                'address_line_2'                  => (string)$order->delivery['suburb'],
+                'locality'                        => (string)$order->delivery['city'],
+                'administrative_district_level_1' => (string)zen_get_zone_code($order->delivery['country']['id'], $order->delivery['zone_id'], $order->delivery['state']),
+                'postal_code'                     => (string)$order->delivery['postcode'],
+                'country'                         => (string)$order->delivery['country']['iso_code_2'],
+                'last_name'                       => (string)$order->delivery['lastname'],
+                'organization'                    => (string)$order->delivery['company'],
             ];
         }
 
         $request_body = [
             'idempotency_key'     => uniqid(),
-            'card_nonce'          => $_POST[$this->code . '_nonce'],
+            'card_nonce'          => (string)$_POST[$this->code . '_nonce'],
             'amount_money'        => [
                 'amount'   => $this->convert_to_cents($payment_amount, $currency_code),
-                'currency' => $currency_code,
+                'currency' => (string)$currency_code,
             ],
             'delay_capture'       => (bool)(MODULE_PAYMENT_SQUARE_TRANSACTION_TYPE === 'authorize'),
             'reference_id'        => (string)(substr(zen_session_id(), 0, 40)), // 40 char max
-            'note'                => substr(htmlentities(trim($this->currency_comment . ' ' . STORE_NAME)), 0, 60), // 60 char max
-            'customer_id'         => $_SESSION['customer_id'],
+            'note'                => (string)substr(htmlentities(trim($this->currency_comment . ' ' . STORE_NAME)), 0, 60), // 60 char max
+            'customer_id'         => (string)$_SESSION['customer_id'],
             'buyer_email_address' => $order->customer['email_address'],
             'billing_address'     => $billing_address,
         ];
@@ -300,33 +300,34 @@ class square extends base
         }
 
         $api_instance = new \SquareConnect\Api\TransactionsApi();
-        $body         = new \SquareConnect\Model\ChargeRequest($request_body);
+        $body         = new \SquareConnect\Model\ZenCartChargeRequest($request_body);
 
-        if (MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live') {
-            $body->offsetSet('integration_id', 'sqi_' . 'b6ff0cd7acc14f7a' . 'b24200041d066ba6'); // required
-        }
         try {
             $result        = $api_instance->charge($location->id, $body);
             $errors_object = $result->getErrors();
             $transaction   = $result->getTransaction();
+            $this->logTransactionData($transaction, $request_body, (string)$errors_object);
         } catch (\SquareConnect\ApiException $e) {
             $errors_object = $e->getResponseBody()->errors;
-            $this->logTransactionData(['id' => 'FATAL ERROR'], $request_body, print_r($e->getResponseBody(), true));
-            trigger_error("Square Connect error. \nResponse Body:\n" . print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
-            $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUARE_TEXT_COMM_ERROR, 'error');
-            zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
+            $error         = $this->parse_error_response($errors_object);
+            $this->logTransactionData([$e->getCode() => $e->getMessage()], $request_body, print_r($e->getResponseBody(), true));
+
+            // only display payment-related errors to customers
+            if ($error['category'] != 'PAYMENT_METHOD_ERROR') {
+                trigger_error("Square Connect error. \nResponse Body:\n" . print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
+                $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUARE_TEXT_COMM_ERROR, 'error');
+                zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
+            }
         }
 
-        // log the response data
-        $this->logTransactionData($transaction, $request_body, (string)$errors_object);
-
-        // analyze the response
+        // analyze for errors
         if (count($errors_object)) {
-            $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUARE_TEXT_ERROR . ' [' . $msg . ']', 'error');
+            $error = $this->parse_error_response($errors_object);
+            $messageStack->add_session('checkout_payment', MODULE_PAYMENT_SQUARE_TEXT_ERROR . ' [' . $error['detail'] . ']', 'error');
             zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
         }
 
+        // success
         if ($transaction->getId()) {
             $tenders                = $transaction->getTenders();
             $this->auth_code        = $tenders[0]['id']; // since Square doesn't supply an auth code, we use the tender-id instead, since it is required for submitting refunds
@@ -435,7 +436,8 @@ class square extends base
     {
         global $currencies;
         $transaction = $this->lookupTransactionForOrder($order_id);
-        $output      = '';
+        if (empty($transaction) || !$transaction->getId()) return '';
+        $output = '';
         require(DIR_FS_CATALOG . DIR_WS_MODULES . 'payment/square_support/square_admin_notification.php');
 
         return $output;
@@ -449,7 +451,7 @@ class square extends base
         $access_token = (string)(MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live' ? MODULE_PAYMENT_SQUARE_ACCESS_TOKEN : MODULE_PAYMENT_SQUARE_SANDBOX_TOKEN);
 
         // set token into Square Config for subsequent API calls
-        SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token);//->setDebug(MODULE_PAYMENT_SQUARE_TESTING_MODE != 'Live');
+        SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token)->setDebug(true)->setDebugFile(DIR_FS_LOGS . '/squareDebug.txt');//->setDebug(MODULE_PAYMENT_SQUARE_TESTING_MODE != 'Live');
 
         return $access_token;
     }
@@ -696,13 +698,13 @@ class square extends base
         // if this currency is "already" in cents, just use the amount directly
         if ((int)$decimal_places === 0) return (int)$amount;
 
-        if (version_compare(PHP_VERSION, '5.6.0', '<')) {
-            // old PHP way
-            return (int)($amount * pow(10, $decimal_places));
-        }
-
+// For compatibility with older than PHP 5.6, we must comment out the following several lines, and use only the pow() call instead of the ** exponentiation operator
+        // if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+        // old PHP way
+        return (int)($amount * pow(10, $decimal_places));
+        // }
         // modern way
-        return (int)($amount * 10 ** $decimal_places);
+        // return (int)($amount * 10 ** $decimal_places);
     }
 
     protected function convert_from_cents($amount, $currency_code = null)
@@ -714,13 +716,14 @@ class square extends base
         // if this currency is "already" in cents, just use the amount directly
         if ((int)$decimal_places === 0) return (int)$amount;
 
-        if (version_compare(PHP_VERSION, '5.6.0', '<')) {
-            // old PHP way
-            return ((int)$amount / pow(10, $decimal_places));
-        }
+// For compatibility with older than PHP 5.6, we must comment out the following several lines, and use only the pow() call instead of the ** exponentiation operator
+        // if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+        // old PHP way
+        return ((int)$amount / pow(10, $decimal_places));
+        // }
 
         // modern way
-        return ((int)$amount / 10 ** $decimal_places);
+        // return ((int)$amount / 10 ** $decimal_places);
 
     }
 
@@ -826,7 +829,6 @@ class square extends base
     private function logTransactionData($response, $payload, $errors = '')
     {
         global $db;
-
         $logMessage = date('M-d-Y h:i:s') .
             "\n=================================\n\n" .
             ($errors != '' ? 'Error Dump: ' . $errors . "\n\n" : '') .
@@ -912,7 +914,7 @@ class square extends base
 
         if (count($errors_object)) {
             $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
+            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg['detail'] . ']', 'error');
 
             return false;
         }
@@ -977,7 +979,7 @@ class square extends base
 
         if (count($errors_object)) {
             $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
+            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg['detail'] . ']', 'error');
 
             return false;
         }
@@ -1040,7 +1042,7 @@ class square extends base
 
         if (count($errors_object)) {
             $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg . ']', 'error');
+            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg['detail'] . ']', 'error');
 
             return false;
         }
@@ -1069,20 +1071,29 @@ class square extends base
         return $default;
     }
 
+    /**
+     * @param $error_object
+     * @return array
+     */
     protected function parse_error_response($error_object)
     {
-        $msg = '';
+        $msg            = '';
+        $first_category = null;
+        $first_code     = null;
         foreach ($error_object as $err) {
-            $code   = method_exists($err, 'getCode') ? $err->getCode() : $err->code;
-            $detail = method_exists($err, 'getDetail') ? $err->getDetail() : $err->detail;
-            $msg    .= "$code: $detail\n";
+            $category = method_exists($err, 'getCategory') ? $err->getCategory() : $err->category;
+            $code     = method_exists($err, 'getCode') ? $err->getCode() : $err->code;
+            $detail   = method_exists($err, 'getDetail') ? $err->getDetail() : $err->detail;
+            $msg      .= "$code: $detail\n";
+            if (is_null($first_category)) $first_category = $category;
+            if (is_null($first_code)) $first_code = $code;
         }
         $msg = trim($msg, "\n");
         $msg = str_replace("\n", "\n<br>", $msg);
 
         $this->transaction_messages = $msg;
 
-        return $msg;
+        return ['detail' => $msg, 'category' => $first_category, 'code' => $first_code];
     }
 
 }

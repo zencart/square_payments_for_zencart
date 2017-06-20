@@ -15,7 +15,7 @@ This module works with PHP 7 and is backwards compatible down to PHP 5.4
 
 ## Merchant Account Requirements
 
-You must have a Square account. You may create a Square merchant account at [squareup.com](https://squareup.com/i/A7FE3E64)
+You must have a Square account. You may create a Square merchant account at [squareup.com](https://squareup.com)
 
 ## Requirements
 
@@ -28,7 +28,7 @@ You must have a Square account. You may create a Square merchant account at [squ
 2. If you have not created an app for your webstore yet, click New Application
 3. Give it a name, such as "Webstore", and click Create at the bottom of the page.
 4. You will now be given access to some credentials.
-5. Click on the OAuth tab. In the "**Redirect URL**" field, enter `https://your_store_url.com/square_handler.php` and click Save at the bottom
+5. Click on the OAuth tab. In the "**Redirect URL**" field, enter `https://your_store_url.com/square_handler.php` and click Save at the bottom. (Ensure the URL you enter points to the correct directory on your server.)
 6. Now click the "Show Secret" button, and copy the Application Secret. You will need it in your store Admin.
 7. Also click back on the Credentials tab, and copy the Application ID. You will need it in your store Admin.
 8. See "Admin module configuration" below.
@@ -48,11 +48,13 @@ Simply upload these files from `files_to_upload` into the corresponding folders 
 
 `/includes/modules/payment/square_support/square_admin_notification.php`
 
+`/includes/modules/payment/square_support/ZenCartChargeRequest.php`
+
 `/includes/languages/english/modules/payment/square.php`
 
 `/includes/modules/pages/checkout_payment/jscript_square.php`
 
-**Note: You should not copy the README.md, LICENSE or CHANGELOG.md files to your live server.**
+**Note: You should NOT copy the README.md, LICENSE or CHANGELOG.md files to your live server.**
 
  
 ## Configure the Square Module in your store Admin
@@ -63,7 +65,7 @@ Simply upload these files from `files_to_upload` into the corresponding folders 
 2. After pasting those values into your Square module settings, click Save.
 
 3. At the top of the displayed settings you will see a button about an Expired Token. Click that button. It will take you to your Square account and ask you to login and authorize the app for your store. Click Authorize. (It may also just quickly open and close a window if you're already logged in to Square in the same browser.)
-After doing that, back in your store Admin, if you refresh the page, that button will go away
+After doing that, back in your store Admin, if you refresh the page, that button will go away.
 
 4. Click Edit in the payment module settings, and click on the Locations drop-down, and choose which location you want your Zen Cart store's payments to be associated with. Click Save.
 
@@ -71,7 +73,7 @@ After doing that, back in your store Admin, if you refresh the page, that button
 
 ## Handling Refunds, Captures, Voids
 ### Refunds
-When viewing a transaction in your store Admin, if it was paid using Square, you will be shown the option to Refund some or all of the payment. Simply enter the amount, and also the Transaction and Tender ID values shown in the order-comments for the original payment. Then check the box to confirm, and click Submit. You will see a status message confirming the refund has been issued.
+When viewing a transaction in your store Admin, if it was paid using Square within the last 120 days, you will be shown the option to Refund some or all of the payment. Simply enter the amount you wish to refund. Then check the box to confirm, and click Submit. You will see a status message confirming the refund has been issued.
 
 ### Captures
 If you've configured the module to "authorize only" instead of automatically capturing each "purchase", then you will also see an option to Capture the previously-authorized transaction. Captures must be done within 6 days, or they will be voided automatically, releasing the hold on those funds for the customer.
@@ -107,6 +109,8 @@ If you are running into difficulty configuring the module in your store, or are 
 1. "nonce" failures:  This is typically caused by javascript or jQuery conflicts in your checkout pages
 
 2. If you find the input fields for credit card numbers are flat with no text box to type into, this typically means you're missing the `jscript_square.php` file as described earlier in the Installation Instructions. Or you've got a firewall or browser plugin blocking access to Square's javascript code. Or you've got a plugin having jQuery conflicts.
+
+3. You must always charge at least $1.00; transactions less than 1.00 will be rejected.
 
 
 

@@ -1,11 +1,12 @@
 <?php
 /**
- * square admin display component
+ * Square payments module
+ * www.squareup.com
  *
- * @package paymentMethod
+ * @package square
  * @copyright Copyright 2003-2017 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: DrByte  June 2017 $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.6 $
  */
 
 $outputStartBlock = '';
@@ -128,7 +129,7 @@ if (method_exists($this, '_doVoid')) {
 
 
 // prepare output based on suitable content components
-if (defined('MODULE_PAYMENT_SQUARE_STATUS') && MODULE_PAYMENT_SQUARE_STATUS != '') {
+if (!empty($transaction) && $transaction->getId()) {
     $output = '<!-- BOF: square admin transaction processing tools -->';
     $output .= $outputStartBlock;
     $output .= '<td>';

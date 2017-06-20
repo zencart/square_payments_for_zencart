@@ -60,7 +60,7 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
                     document.getElementById('card-nonce').value = nonce;
                     document.getElementById('card-type').value = cardData.card_brand;
                     document.getElementById('card-four').value = cardData.last_4;
-                    document.getElementById('card-exp').value = cardData.exp_month.toString() + cardData.exp_year.toString().substr(-2);
+                    document.getElementById('card-exp').value = ('0'+cardData.exp_month.toString()).substr(-2) + cardData.exp_year.toString().substr(-2);
                     document.getElementsByName('checkout_payment')[0].submit();
                 }
 
@@ -96,8 +96,6 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
         });
     });
 </script>
-
-
 <style>
 .paymentInput {display:inline;font-size:1em;margin:0 0.1em 10px 0;height:35px;padding-left:5px;width:50%;}
 .paymentInput {background-color: white;border:3px solid #ccc;}
