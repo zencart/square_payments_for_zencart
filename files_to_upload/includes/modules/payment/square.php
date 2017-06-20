@@ -451,7 +451,7 @@ class square extends base
         $access_token = (string)(MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Live' ? MODULE_PAYMENT_SQUARE_ACCESS_TOKEN : MODULE_PAYMENT_SQUARE_SANDBOX_TOKEN);
 
         // set token into Square Config for subsequent API calls
-        SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token)->setDebug(true)->setDebugFile(DIR_FS_LOGS . '/squareDebug.txt');//->setDebug(MODULE_PAYMENT_SQUARE_TESTING_MODE != 'Live');
+        SquareConnect\Configuration::getDefaultConfiguration()->setAccessToken($access_token); //->setDebug(true)->setDebugFile(DIR_FS_LOGS . '/squareDebug.txt');
 
         return $access_token;
     }
