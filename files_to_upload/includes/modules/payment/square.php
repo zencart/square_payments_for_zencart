@@ -118,6 +118,8 @@ class square extends base
         if ($this->enabled == false || (int)MODULE_PAYMENT_SQUARE_ZONE == 0) {
             return;
         }
+        if (!isset($order->billing['country'])) return;
+
         $check_flag = false;
         $sql        = "SELECT zone_id FROM " . TABLE_ZONES_TO_GEO_ZONES . " WHERE geo_zone_id = '" . (int)MODULE_PAYMENT_SQUARE_ZONE . "' AND zone_country_id = '" . (int)$order->billing['country']['id'] . "' ORDER BY zone_id";
         $checks     = $db->Execute($sql);
