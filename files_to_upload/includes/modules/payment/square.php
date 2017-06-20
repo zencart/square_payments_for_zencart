@@ -902,18 +902,17 @@ class square extends base
             $result        = $api_instance->createRefund($location_id, $transaction_id, $request_body);
             $errors_object = $result->getErrors();
             $transaction   = $result->getRefund();
+            $this->logTransactionData($transaction, $refund_details, (string)$errors_object);
         } catch (\SquareConnect\ApiException $e) {
             $errors_object = $e->getResponseBody()->errors;
-            $this->logTransactionData(['id' => 'FATAL ERROR'], $refund_details, print_r($e->getResponseBody(), true));
+            $this->logTransactionData([$e->getCode() => $e->getMessage()], $refund_details, print_r($e->getResponseBody(), true));
             trigger_error("Square Connect error (REFUNDING). \nResponse Body:\n" . print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
             $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_COMM_ERROR, 'error');
         }
 
-        $this->logTransactionData($transaction, $refund_details, (string)$errors_object);
-
         if (count($errors_object)) {
-            $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg['detail'] . ']', 'error');
+            $error = $this->parse_error_response($errors_object);
+            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $error['detail'] . ']', 'error');
 
             return false;
         }
@@ -967,18 +966,17 @@ class square extends base
         try {
             $result        = $api_instance->captureTransaction($location_id, $transaction_id);
             $errors_object = $result->getErrors();
+            $this->logTransactionData(['capture request' => 'transaction ' . $transaction_id], [], (string)$errors_object);
         } catch (\SquareConnect\ApiException $e) {
             $errors_object = $e->getResponseBody()->errors;
-            $this->logTransactionData(['id' => 'FATAL ERROR'], [], print_r($e->getResponseBody(), true));
+            $this->logTransactionData([$e->getCode() => $e->getMessage()], [], print_r($e->getResponseBody(), true));
             trigger_error("Square Connect error (CAPTURE attempt). \nResponse Body:\n" . print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
             $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_COMM_ERROR, 'error');
         }
 
-        $this->logTransactionData(['capture request' => 'transaction ' . $transaction_id], [], (string)$errors_object);
-
         if (count($errors_object)) {
-            $msg = $this->parse_error_response($errors_object);
-            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $msg['detail'] . ']', 'error');
+            $error = $this->parse_error_response($errors_object);
+            $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_UPDATE_FAILED . ' [' . $error['detail'] . ']', 'error');
 
             return false;
         }
@@ -1030,14 +1028,13 @@ class square extends base
         try {
             $result        = $api_instance->voidTransaction($location_id, $transaction_id);
             $errors_object = $result->getErrors();
+            $this->logTransactionData(['void request' => 'transaction ' . $transaction_id], [], (string)$errors_object);
         } catch (\SquareConnect\ApiException $e) {
             $errors_object = $e->getResponseBody()->errors;
-            $this->logTransactionData(['id' => 'FATAL ERROR'], [], print_r($e->getResponseBody(), true));
+            $this->logTransactionData([$e->getCode() => $e->getMessage()], [], print_r($e->getResponseBody(), true));
             trigger_error("Square Connect error (VOID attempt). \nResponse Body:\n" . print_r($e->getResponseBody(), true) . "\nResponse Headers:\n" . print_r($e->getResponseHeaders(), true), E_USER_NOTICE);
             $messageStack->add_session(MODULE_PAYMENT_SQUARE_TEXT_COMM_ERROR, 'error');
         }
-
-        $this->logTransactionData(['void request' => 'transaction ' . $transaction_id], [], (string)$errors_object);
 
         if (count($errors_object)) {
             $msg = $this->parse_error_response($errors_object);
