@@ -609,16 +609,15 @@ class square extends base
         $error    = curl_error($ch);
         $errno    = curl_errno($ch);
         curl_close($ch);
-        //error_log('SQUARE TOKEN EXCHANGE response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
+//error_log('SQUARE TOKEN EXCHANGE response: ' . "\n" . print_r($response, true) . "\n" . $errno . ' ' . $error . ' HTTP: ' . $httpcode);
 
         if ($error == 0) {
             $this->setAccessToken($response);
             echo 'Token set. You may now continue configuring the module. <script type="text/javascript">window.close()</script>';
 
             return true;
-        } else {
-            trigger_error('Could not exchange Square code for a token. HTTP ' . $httpcode . '. Error ' . $errno . ': ' . $error, E_USER_ERROR);
         }
+        trigger_error('Could not exchange Square code for a token. HTTP ' . $httpcode . '. Error ' . $errno . ': ' . $error, E_USER_ERROR);
     }
 
     protected function getLocationDetails()

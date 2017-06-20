@@ -90,7 +90,7 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
         $.ajaxSetup({
             headers: {"X-CSRFToken": "<?php echo $_SESSION['securityToken']; ?>"}
         });
-        $('#paymentSubmit .submit_button').click(function (e) {
+        $('#paymentSubmitButton, #paymentSubmit INPUT[type="image"], #paymentSubmit INPUT[type="submit"]').click(function (e) {
             e.preventDefault();
             paymentForm.requestCardNonce();
         });

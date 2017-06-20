@@ -28,11 +28,12 @@ define('MODULE_PAYMENT_SQUARE_ERROR_INVALID_CARD_DATA',
     'We could not initiate your transaction because of a problem with the card data you entered. Please correct the card data, or report this error to the Store Owner: SQ-NONCE-FAILURE');
 define('MODULE_PAYMENT_SQUARE_ERROR_DECLINED', 'Sorry, your payment could not be authorized. Please select an alternate method of payment.');
 
-define('MODULE_PAYMENT_SQUARE_TEXT_NEED_ACCESS_TOKEN',
-    '<span class="text-danger"><strong>ALERT: Access Token not set:</strong></span> <br>
-    1. Make sure the OAuth Redirect URL in your Square Account "app" is set to <u>' . HTTPS_SERVER . '/square_handler.php</u><br>
+if (IS_ADMIN_FLAG === true) {
+    define('MODULE_PAYMENT_SQUARE_TEXT_NEED_ACCESS_TOKEN',
+        '<span class="text-danger"><strong>ALERT: Access Token not set:</strong></span> <br>
+    1. Make sure the OAuth Redirect URL in your Square Account "app" is set to <u><nobr><pre>' . str_replace('index.php?main_page=index', 'square_handler.php', zen_catalog_href_link(FILENAME_DEFAULT, '', 'SSL')) . '</pre></nobr></u><br>
     2. And then <a href="%s" target="_blank"><button class="btn btn-xs btn-success">Click here to login and Authorize your account</button></a>');
-
+}
 
 
 define('MODULE_PAYMENT_SQUARE_ENTRY_TRANSACTION_SUMMARY', '<strong>Transaction Summary</strong>');
