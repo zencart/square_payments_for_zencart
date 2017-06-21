@@ -27,7 +27,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '0.70';
+    public $moduleVersion = '0.76';
     /**
      * $title is the displayed name for this payment method
      *
@@ -702,10 +702,10 @@ class square extends base
 // For compatibility with older than PHP 5.6, we must comment out the following several lines, and use only the pow() call instead of the ** exponentiation operator
         // if (version_compare(PHP_VERSION, '5.6.0', '<')) {
         // old PHP way
-        return (int)($amount * pow(10, $decimal_places));
+        return (int)(string)(round($amount, $decimal_places) * pow(10, $decimal_places));
         // }
         // modern way
-        // return (int)($amount * 10 ** $decimal_places);
+        // return (int)(string)(round($amount, $decimal_places) * 10 ** $decimal_places);
     }
 
     protected function convert_from_cents($amount, $currency_code = null)
