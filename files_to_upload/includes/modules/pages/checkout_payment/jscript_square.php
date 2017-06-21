@@ -91,8 +91,10 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
             headers: {"X-CSRFToken": "<?php echo $_SESSION['securityToken']; ?>"}
         });
         $('#paymentSubmitButton, #paymentSubmit INPUT[type="image"], #paymentSubmit INPUT[type="submit"]').click(function (e) {
-            e.preventDefault();
-            paymentForm.requestCardNonce();
+            if (document.getElementById('pmt-square').checked == true) {
+                e.preventDefault();
+                paymentForm.requestCardNonce();
+            }
         });
     });
 </script>
