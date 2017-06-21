@@ -84,7 +84,7 @@ class square extends base
                     $this->description .= "\n" . '<br><br>' . sprintf(MODULE_PAYMENT_SQUARE_TEXT_NEED_ACCESS_TOKEN, $this->getAuthorizeURL());
                 }
                 if (MODULE_PAYMENT_SQUARE_TESTING_MODE == 'Sandbox') $this->title .= '<span class="alert"> (Sandbox mode)</span>';
-                $new_version_details = plugin_version_check_for_updates(2071, $this->moduleVersion);
+                $new_version_details = plugin_version_check_for_updates(156, $this->moduleVersion);
                 if ($new_version_details !== false) {
                     $this->title .= '<span class="alert">' . ' - NOTE: A NEW VERSION OF THIS PLUGIN IS AVAILABLE. <a href="' . $new_version_details['link'] . '" target="_blank">[Details]</a>' . '</span>';
                 }
