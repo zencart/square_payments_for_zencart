@@ -27,7 +27,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '0.76';
+    public $moduleVersion = '0.80';
     /**
      * $title is the displayed name for this payment method
      *
@@ -580,6 +580,7 @@ class square extends base
                 'client_id' => MODULE_PAYMENT_SQUARE_APPLICATION_ID,
                 'scope'     => 'MERCHANT_PROFILE_READ PAYMENTS_WRITE PAYMENTS_READ',
                 'state'     => uniqid(),
+                'session'   => 'false',
             ]);
 
         return $url . $params;
