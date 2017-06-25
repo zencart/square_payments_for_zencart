@@ -90,8 +90,8 @@ if (!defined(MODULE_PAYMENT_SQUARE_STATUS) || MODULE_PAYMENT_SQUARE_STATUS != 'T
         $.ajaxSetup({
             headers: {"X-CSRFToken": "<?php echo $_SESSION['securityToken']; ?>"}
         });
-        $('#paymentSubmitButton, #paymentSubmit INPUT[type="image"], #paymentSubmit INPUT[type="submit"]').click(function (e) {
-            if (document.getElementById('pmt-square').checked == true) {
+        $('form[name="checkout_payment"]').submit(function(e) {
+            if($('#pmt-square').is(':checked') || this['payment'].value == 'square' || document.getElementById('pmt-square').checked == true) {
                 e.preventDefault();
                 paymentForm.requestCardNonce();
             }
