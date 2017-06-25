@@ -1,6 +1,6 @@
 # Change Log
 
-### Version 2.1.0
+### Version 2.2.0
 
 ### Version 2.0.2 (2017-01-20)
 
