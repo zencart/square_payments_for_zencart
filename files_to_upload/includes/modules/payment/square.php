@@ -150,7 +150,7 @@ class square extends base
 
         $selection = [
             'id'     => $this->code,
-            'module' => MODULE_PAYMENT_SQUARE_TEXT_CATALOG_TITLE,
+            'module' => $this->title,
             'fields' => [
                 [
                     'title' => MODULE_PAYMENT_SQUARE_TEXT_CREDIT_CARD_NUMBER,
