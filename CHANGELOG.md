@@ -7,3 +7,5 @@
 	 - Requires Zen Cart v1.5.4 or v1.5.5
 
 0.80 - June 24, 2017 - Improvements to initial setup.
+
+0.81 - June 28, 2017 - Change made to accommodate a Square SDK Locations API limitation.
