@@ -331,7 +331,9 @@ You can also do refunds for online purchases directly from within the order scre
 
 <p>The module expects the checkout page to have a <form> element with a <code>name=&quot;checkout_payment&quot;</code> in it.</p>
 
-<p>If you&#39;ve changed the checkout flow such that <code>tpl_checkout_payment_default.php</code> template file (or whatever files your custom checkout flow uses), no longer has a form with that name, you may need to update your template accordingly.</p></li>
+<p>If you&#39;ve changed the checkout flow such that <code>tpl_checkout_payment_default.php</code> template file (or whatever files your custom checkout flow uses), no longer has a form with that name, you may need to update your template accordingly.</p>
+
+<p>Additionally, some custom templates forget to copy the <code>jscript_framework.php</code> file from <code>/includes/templates/template_default/jscript/jscript_framework.php</code> to <code>/includes/templates/YOUR_TEMPLATE_FOLDER/jscript/jscript_framework.php</code>. Without this file some other (non-Square-related) checkout functions may break the javascript required for the Square module to work, thus resulting in <code>SQ-NONCE-FAILURE</code> errors. This can often be identified by finding &quot;Undefined variable zcJS&quot; in the browser&#39;s console error logs in the split second before the page refreshes after clicking submit.</p></li>
 <li><p>If you find the input fields for credit card numbers are flat with no text box to type into, this typically means you&#39;re missing the <code>jscript_square.php</code> file as described earlier in the Installation Instructions. </p>
 
 <p>Or you&#39;ve got a firewall or browser plugin blocking access to Square&#39;s javascript code. </p>

@@ -135,6 +135,8 @@ If you are running into difficulty configuring the module in your store, or are 
 	The module expects the checkout page to have a <form> element with a `name="checkout_payment"` in it.
 
 	If you've changed the checkout flow such that `tpl_checkout_payment_default.php` template file (or whatever files your custom checkout flow uses), no longer has a form with that name, you may need to update your template accordingly.
+	
+	Additionally, some custom templates forget to copy the `jscript_framework.php` file from `/includes/templates/template_default/jscript/jscript_framework.php` to `/includes/templates/YOUR_TEMPLATE_FOLDER/jscript/jscript_framework.php`. Without this file some other (non-Square-related) checkout functions may break the javascript required for the Square module to work, thus resulting in `SQ-NONCE-FAILURE` errors. This can often be identified by finding "Undefined variable zcJS" in the browser's console error logs in the split second before the page refreshes after clicking submit.
 
 
 2. If you find the input fields for credit card numbers are flat with no text box to type into, this typically means you're missing the `jscript_square.php` file as described earlier in the Installation Instructions. 
