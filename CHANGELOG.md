@@ -9,3 +9,6 @@
 0.80 - June 24, 2017 - Improvements to initial setup.
 
 0.81 - June 28, 2017 - Change made to accommodate a Square SDK Locations API limitation.
+
+0.82 - July 31, 2017 - Fix a small currency conversion error. (Not triggered unless store is multi-currency)
+
