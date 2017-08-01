@@ -346,9 +346,27 @@ If you re-used a pre-existing &quot;application&quot; in your Square Apps menu, 
 The module contains some CSS markup in the very bottom of the <code>/includes/modules/pages/checkout_payment/jscript_square.php</code> file, intended to create uniformity for the custom fields Square creates. For 99% of stores you will NOT need to change this; but in rare cases you may want to alter this CSS slightly to suit your needs. </p></li>
 </ol>
 
-<h2 id="toc_16">Compatibility With Various Zen Cart Plugins</h2>
+<h3 id="toc_16">Problems with OAuth Token Generation</h3>
 
-<h3 id="toc_17">One-Page Checkout by lat9</h3>
+<p>Common causes of problems with this:</p>
+
+<ol>
+<li><p>Didn&#39;t upload <code>square_handler.php</code></p></li>
+<li><p>Uploaded <code>square_handler.php</code> into the wrong directory. It belongs in the &quot;root&quot; of your store&#39;s folders. (For reference, <code>ipn_main_handler.php</code> also exists in this directory.)</p></li>
+<li><p>Didn&#39;t put the <strong>OAuth Redirect URL</strong> into Square&#39;s settings, or mistyped it. </p></li>
+</ol>
+
+<p>Less common, but possible causes:</p>
+
+<ol>
+<li><p>You&#39;ve got URL-rewriting rules set up in .htaccess or nginx, which are disallowing <code>square_handler.php</code> to be reached, probably because you&#39;re redirecting those requests to some other URL/file. Fix: allow <code>square_handler.php</code> to be accessed directly. You could clone any rules for <code>ipn_main_handler.php</code> for <code>square_handler.php</code> as a starting point.</p></li>
+<li><p>You&#39;re running on a test site using a fake/unreachable URL (and therefore Square&#39;s servers can&#39;t reach it). Fix by using a real live website.</p></li>
+<li><p>You&#39;re running behind a firewall that&#39;s got aggressive restrictions to files. There&#39;s nothing special required for <code>square_handler.php</code>: It&#39;s just a simple PHP file, and will be accessed via port 443 ... just like any other file. There should be no rule against it.</p></li>
+</ol>
+
+<h2 id="toc_17">Compatibility With Various Zen Cart Plugins</h2>
+
+<h3 id="toc_18">One-Page Checkout by lat9</h3>
 
 <p>For One-Page Checkout to work, you must <strong>copy</strong> the <code>jscript_square.php</code> file from <code>/includes/modules/checkout_payment/</code> into the <code>/includes/modules/pages/checkout_one</code> folder.</p>
 

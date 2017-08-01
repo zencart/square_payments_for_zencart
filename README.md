@@ -154,6 +154,26 @@ If you are running into difficulty configuring the module in your store, or are 
 	The module contains some CSS markup in the very bottom of the `/includes/modules/pages/checkout_payment/jscript_square.php` file, intended to create uniformity for the custom fields Square creates. For 99% of stores you will NOT need to change this; but in rare cases you may want to alter this CSS slightly to suit your needs. 
 
 
+### Problems with OAuth Token Generation
+Common causes of problems with this:
+
+1. Didn't upload `square_handler.php`
+
+2. Uploaded `square_handler.php` into the wrong directory. It belongs in the "root" of your store's folders. (For reference, `ipn_main_handler.php` also exists in this directory.)
+
+3. Didn't put the **OAuth Redirect URL** into Square's settings, or mistyped it. 
+
+
+Less common, but possible causes:
+
+1. You've got URL-rewriting rules set up in .htaccess or nginx, which are disallowing `square_handler.php` to be reached, probably because you're redirecting those requests to some other URL/file. Fix: allow `square_handler.php` to be accessed directly. You could clone any rules for `ipn_main_handler.php` for `square_handler.php` as a starting point.
+
+2. You're running on a test site using a fake/unreachable URL (and therefore Square's servers can't reach it). Fix by using a real live website.
+
+3. You're running behind a firewall that's got aggressive restrictions to files. There's nothing special required for `square_handler.php`: It's just a simple PHP file, and will be accessed via port 443 ... just like any other file. There should be no rule against it.
+
+
+
 ## Compatibility With Various Zen Cart Plugins
 
 ### One-Page Checkout by lat9
