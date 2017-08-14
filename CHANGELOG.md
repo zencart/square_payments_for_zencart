@@ -12,3 +12,5 @@
 
 0.82 - July 31, 2017 - Fix a small currency conversion error. (Not triggered unless store is multi-currency)
 
+0.90 - Aug 14, 2017 - Fix problem with automatic token refresh; and updated to Square Connect SDK v2.2.1
+
