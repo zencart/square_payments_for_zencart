@@ -177,7 +177,7 @@ Less common, but possible causes:
 ## Compatibility With Various Zen Cart Plugins
 
 ### One-Page Checkout by lat9
-For One-Page Checkout to work, you must **copy** the `jscript_square.php` file from `/includes/modules/checkout_payment/` into the `/includes/modules/pages/checkout_one` folder.
+For One-Page Checkout to work, you must **copy** the `jscript_square.php` file from `/includes/modules/pages/checkout_payment/` into the `/includes/modules/pages/checkout_one/` folder.
 
 
 
