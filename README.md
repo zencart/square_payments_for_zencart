@@ -5,18 +5,18 @@
 The Square payment plugin module allows you to connect your Square account to your online store.
 You can also do refunds for online purchases directly from within the order screen in your store Admin.
 
-The payment gateway is operated by Square, Inc, which also offers POS card-swipe readers to handle card-present transactions you can conduct from your phone or tablet in-store or mobile.
+The payment gateway is operated by Square, Inc, which also offers POS card and chip readers to handle card-present transactions you can conduct from your phone or tablet in-store or mobile.
 
 - Setup is quick: start accepting credit cards in less than 5 minutes, with your existing Square account.
 - No monthly fees and no setup fees.
 - PCI Compliant. Customer never leaves your store!
-- Standard rates are 2.9% + $0.30 per transaction.
+- Standard rates are 2.9% + $0.30 per transaction in US/Canada, and 2.5% for UK businesses.
 - Funds are deposited in your bank account in 1-2 business days.
 
 
 ## Compatibility
 
-This module is compatible with Zen Cart® v1.5.4 and v1.5.5
+This module is compatible with Zen Cart® v1.5.4, v1.5.5, and v1.5.6
 
 This module works with PHP versions 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 
@@ -31,6 +31,7 @@ This module works with PHP versions 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 ## Creating an App inside your Square account
 1. Login at https://connect.squareup.com/apps to view the apps you've connected to your account.
 2. Click to create a New Application for your Zen Cart store to access. Give it a name, such as "Webstore", and click Create at the bottom of the page.
+3. You may be prompted to allow a multi-location upgrade to your account's API configuration. Proceed.
 4. You will now be given access to some credentials. (If you already have a custom app and are trying to re-use it, you may need to revoke its token and regenerate one.)
 5. Click on the OAuth tab. In the "**Redirect URL**" field, enter `https://your_store_url.com/square_handler.php` and click Save at the bottom. (Ensure the URL you enter points to the correct directory (or subdirectory) on your server.)
 6. Now click the "Show Secret" button, and copy the Application Secret. You will need it in your store Admin.
