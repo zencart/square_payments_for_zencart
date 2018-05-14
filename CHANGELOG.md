@@ -13,5 +13,12 @@
 
 0.90 - Aug 14, 2017 - Fix problem with automatic token refresh; and updated to Square Connect SDK v2.2.1
 
-0.91 - Dec 18, 2017 - Fix compatibility with OnePageCheckout plugin. Update to Square Connect SDK v2.5.1
+0.91 - Dec 18, 2017 - Fix compatibility with OnePageCheckout plugin. Also updated to Square Connect SDK v2.5.1
+
+0.92 - Dec 28, 2017 - Update auto-refresh of admin page when getting an Access Token
+
+
+ 	Now when a token is obtained after pressing the green button in the Admin, the page should auto-refresh within 5 seconds to indicate that the token was successfully applied.
+
+
 
