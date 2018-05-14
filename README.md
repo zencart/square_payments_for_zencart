@@ -184,4 +184,4 @@ For One-Page Checkout to work, you must **copy** the `jscript_square.php` file f
 
 ---
 
-_Copyright (c) 2017 Zen Ventures, LLC. All Rights reserved._
+_Copyright (c) 2018 Zen Ventures, LLC. All Rights reserved._
