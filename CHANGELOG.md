@@ -24,3 +24,5 @@
 0.93 - May 2018 - Compatibility updates. This module REQUIRES PHP 5.4 or newer. Preferably 5.6 or 7.1. Specifically: PHP 5.3 is NOT supported by this module; however, since some stores still use this ancient version, it will throw errors if modern PHP coding styles are found. Forcing it back to old style for awhile longer.
 Also changed network connection parameters, to remove CURL followlocation, due to incompatibility with a few sites.
 
+0.94 - May 2018 - Simply updates the database storage configuration to allow for the newer longer transaction-id responses, since these are used to empower the in-Admin refund feature. 
+
