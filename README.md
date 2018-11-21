@@ -18,7 +18,7 @@ The payment gateway is operated by Square, Inc, which also offers POS card and c
 
 This module is compatible with Zen Cart® v1.5.4, v1.5.5, and v1.5.6
 
-This module works with PHP versions 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
+This module works with PHP versions 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 
 
 ## Requirements

@@ -135,7 +135,7 @@ class ZenCartChargeRequest extends ChargeRequest
       */
     protected $reference_id;
     /**
-      * $note An optional note to associate with the transaction.  This value cannot exceed 60 characters.
+     * $note
       * @var string
       */
     protected $note;
@@ -164,12 +164,12 @@ class ZenCartChargeRequest extends ChargeRequest
      */
     protected $integration_id = 'sqi_b0110fe6bf154f09805ac8b7f5f27fb4';
     /**
-      * $order_id The ID of the order to associate with this transaction.  If you provide this value, the `amount_money` value of your request must __exactly match__ the `total_money` value of the order's `order_amounts` field.
+     * $order_id The ID of the order to associate with this transaction.  If you provide this value, the `amount_money` value of your request must __exactly match__ the value of the order's `total_money` field.
       * @var string
       */
     protected $order_id;
     /**
-      * $additional_recipients The basic primitive of multi-party transaction. The value is optional. The transaction facilitated by you can be split from here.  If you provide this value, the `amount_money` value in your additional_recipients must not be more than 90% of the `amount_money` value in you charge's request. The `location_id` must be the valid location of the app owner merchant.  This field requires `PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS` OAuth permission.  This field is currently not supported in sandbox.
+     * $additional_recipients The basic primitive of multi-party transaction. The value is optional. The transaction facilitated by you can be split from here.  If you provide this value, the `amount_money` value in your additional_recipients must not be more than 90% of the `amount_money` value in the charge request. The `location_id` must be the valid location of the app owner merchant.  This field requires the `PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS` OAuth permission.  This field is currently not supported in sandbox.
       * @var \SquareConnect\Model\AdditionalRecipient[]
       */
     protected $additional_recipients;
@@ -395,7 +395,7 @@ class ZenCartChargeRequest extends ChargeRequest
 
     /**
      * Sets note
-     * @param string $note An optional note to associate with the transaction.  This value cannot exceed 60 characters.
+     * @param string $note
      * @return $this
      */
     public function setNote($note)
@@ -490,7 +490,7 @@ class ZenCartChargeRequest extends ChargeRequest
   
     /**
      * Sets order_id
-     * @param string $order_id The ID of the order to associate with this transaction.  If you provide this value, the `amount_money` value of your request must __exactly match__ the `total_money` value of the order's `order_amounts` field.
+     * @param string $order_id The ID of the order to associate with this transaction.  If you provide this value, the `amount_money` value of your request must __exactly match__ the value of the order's `total_money` field.
      * @return $this
      */
     public function setOrderId($order_id)
@@ -509,7 +509,7 @@ class ZenCartChargeRequest extends ChargeRequest
   
     /**
      * Sets additional_recipients
-     * @param \SquareConnect\Model\AdditionalRecipient[] $additional_recipients The basic primitive of multi-party transaction. The value is optional. The transaction facilitated by you can be split from here.  If you provide this value, the `amount_money` value in your additional_recipients must not be more than 90% of the `amount_money` value in you charge's request. The `location_id` must be the valid location of the app owner merchant.  This field requires `PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS` OAuth permission.  This field is currently not supported in sandbox.
+     * @param \SquareConnect\Model\AdditionalRecipient[] $additional_recipients The basic primitive of multi-party transaction. The value is optional. The transaction facilitated by you can be split from here.  If you provide this value, the `amount_money` value in your additional_recipients must not be more than 90% of the `amount_money` value in the charge request. The `location_id` must be the valid location of the app owner merchant.  This field requires the `PAYMENTS_WRITE_ADDITIONAL_RECIPIENTS` OAuth permission.  This field is currently not supported in sandbox.
      * @return $this
      */
     public function setAdditionalRecipients($additional_recipients)
