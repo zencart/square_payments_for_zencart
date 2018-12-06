@@ -27,5 +27,6 @@ Also changed network connection parameters, to remove CURL `followlocation`, due
 
 0.94 - May 2018 - Simply updates the database storage configuration to allow for the newer longer transaction-id responses, since these are used to empower the in-Admin refund feature. 
 
-0.95 - Nov 2018 - Fixed strict ['id'] error, Fixed currency conversion error if Square account currency was different from the Store's Default Currency. Also upgraded the SquareConnect SDK from 2.5.1 to 2.20180918.1 (but not yet using new features offered by the change).
+0.95 - Nov 2018 - Fixed strict ['id'] error, Fixed currency conversion error if Square account currency was different from the Store's Default Currency. Also upgraded the SquareConnect SDK from 2.5.1 to 2.20180918.1.
 
+0.96 - Dec 2018 - Fixed a jQuery error which could cause confusion on checkout payment page if checkout rules suddenly made the Square module unavailable. Also upgraded the SquareConnect SDK to 2.20181205.0.
