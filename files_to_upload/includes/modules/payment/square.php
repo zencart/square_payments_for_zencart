@@ -8,9 +8,9 @@
  * REQUIRES PHP 5.4 or newer
  *
  * @package square
- * @copyright Copyright 2003-2018 Zen Cart Development Team
+ * @copyright Copyright 2003-2019 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2018-11-20  New in v1.5.5f $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2019-03-15 $
  */
 
 if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
@@ -32,7 +32,8 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '0.96';
+    public $moduleVersion = '0.97';
+    protected $SquareApiVersion = '2018-12-05';
     /**
      * $title is the displayed name for this payment method
      *
@@ -561,7 +562,11 @@ class square extends base
         curl_setopt($ch, CURLOPT_TIMEOUT, 9);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 9);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Authorization: Client ' . MODULE_PAYMENT_SQUARE_APPLICATION_SECRET));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Authorization: Client ' . MODULE_PAYMENT_SQUARE_APPLICATION_SECRET,
+            'Square-Version: ' . $this->SquareApiVersion,
+        ));
         curl_setopt($ch, CURLOPT_USERAGENT, 'Zen Cart token refresh [' . preg_replace('#https?://#', '', HTTP_SERVER) . '] ');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
@@ -624,7 +629,10 @@ class square extends base
         curl_setopt($ch, CURLOPT_TIMEOUT, 9);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 9);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: application/json',
+            'Square-Version: ' . $this->SquareApiVersion,
+        ));
         curl_setopt($ch, CURLOPT_USERAGENT, 'Zen Cart token request [' . preg_replace('#https?://#', '', HTTP_SERVER) . '] ');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($ch);
@@ -1179,7 +1187,7 @@ if (!function_exists('plugin_version_check_for_updates')) {
         }
         curl_close($ch);
     } else {
-        $errono = 9999;
+        $errno = 9999;
         $error = 'curl_init not found in PHP';
     }
     if ($errno > 0 || $response == '') {

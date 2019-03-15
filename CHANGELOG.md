@@ -30,3 +30,5 @@ Also changed network connection parameters, to remove CURL `followlocation`, due
 0.95 - Nov 2018 - Fixed strict ['id'] error, Fixed currency conversion error if Square account currency was different from the Store's Default Currency. Also upgraded the SquareConnect SDK from 2.5.1 to 2.20180918.1.
 
 0.96 - Dec 2018 - Fixed a jQuery error which could cause confusion on checkout payment page if checkout rules suddenly made the Square module unavailable. Also upgraded the SquareConnect SDK to 2.20181205.0.
+
+0.97 - March 15 2019 - Updated to send headers forcing older 20181205 API version until code is refactored to use Square's new API endpoints introduced on 2019-03-13. Only files changed were the square_handler.php and the main square.php payment module file. (No change to the vendors folder.)
