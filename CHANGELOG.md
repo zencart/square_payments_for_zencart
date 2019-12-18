@@ -1,7 +1,7 @@
 # Square Payment Module for Zen Cart
 
-- Requires PHP 7.3, 7.2, 7.1, 7.0, 5.6, 5.5, or 5.4
-- Requires Zen Cart v1.5.4 or v1.5.5 or v1.5.6
+- Requires PHP 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5, or 5.4
+- Requires Zen Cart v1.5.4 or v1.5.5 or v1.5.6 or v1.5.7
 
 
 0.77 - June 23, 2017 - First Release - based on Square Connect PHP SDK 2.2.0
@@ -22,8 +22,7 @@
  	Now when a token is obtained after pressing the green button in the Admin, the page should auto-refresh within 5 seconds to indicate that the token was successfully applied.
 
 
-0.93 - May 2018 - Compatibility updates. This module REQUIRES PHP 5.4 or newer. Preferably 5.6 or 7.1. Specifically: PHP 5.3 is NOT supported by this module; however, since some stores still use this ancient version, it will throw errors if modern PHP coding styles are found. Forcing it back to old style for awhile longer.
-Also changed network connection parameters, to remove CURL `followlocation`, due to incompatibility with a few sites.
+0.93 - May 2018 - Compatibility updates. This module REQUIRES PHP 5.4 or newer. Preferably 5.6 or 7.1. Specifically: PHP 5.3 is NOT supported by this module.
 
 0.94 - May 2018 - Simply updates the database storage configuration to allow for the newer longer transaction-id responses, since these are used to empower the in-Admin refund feature. 
 
@@ -32,3 +31,14 @@ Also changed network connection parameters, to remove CURL `followlocation`, due
 0.96 - Dec 2018 - Fixed a jQuery error which could cause confusion on checkout payment page if checkout rules suddenly made the Square module unavailable. Also upgraded the SquareConnect SDK to 2.20181205.0.
 
 0.97 - March 15 2019 - Updated to send headers forcing older 20181205 API version until code is refactored to use Square's new API endpoints introduced on 2019-03-13. Only files changed were the square_handler.php and the main square.php payment module file. (No change to the vendors folder.)
+
+1.0 - Feb 4, 2020 - Updated to Square's 2.20200122.0 API spec, which uses new endpoints and improves OAuth token renewal process. (Will require a re-authorization of the module after upgrading to this version. It may not happen for up to 30 days.)
+
+
+
+
+---
+
+###Upgrading
+
+Upgrade instructions: Delete the server's /includes/classes/vendors/square directory and the /includes/modules/payment/square_support directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the files_to_upload directory, putting them into the same directory on the server as you find them in this zip.

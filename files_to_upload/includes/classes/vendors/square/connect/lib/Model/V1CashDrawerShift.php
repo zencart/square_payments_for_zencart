@@ -27,7 +27,7 @@ class V1CashDrawerShift implements ArrayAccess
         'id' => 'string',
         'event_type' => 'string',
         'opened_at' => 'string',
-        'ended_at' => 'bool',
+        'ended_at' => 'string',
         'closed_at' => 'string',
         'employee_ids' => 'string[]',
         'opening_employee_id' => 'string',
@@ -129,7 +129,7 @@ class V1CashDrawerShift implements ArrayAccess
       */
     protected $id;
     /**
-      * $event_type The shift's current state.
+      * $event_type The shift's current state. See [V1CashDrawerShiftEventType](#type-v1cashdrawershifteventtype) for possible values
       * @var string
       */
     protected $event_type;
@@ -140,7 +140,7 @@ class V1CashDrawerShift implements ArrayAccess
     protected $opened_at;
     /**
       * $ended_at The time when the shift ended, in ISO 8601 format.
-      * @var bool
+      * @var string
       */
     protected $ended_at;
     /**
@@ -169,7 +169,7 @@ class V1CashDrawerShift implements ArrayAccess
       */
     protected $closing_employee_id;
     /**
-      * $description The time when the timecard was created, in ISO 8601 format.
+      * $description A description of the cash drawer shift.
       * @var string
       */
     protected $description;
@@ -353,7 +353,7 @@ class V1CashDrawerShift implements ArrayAccess
   
     /**
      * Sets event_type
-     * @param string $event_type The shift's current state.
+     * @param string $event_type The shift's current state. See [V1CashDrawerShiftEventType](#type-v1cashdrawershifteventtype) for possible values
      * @return $this
      */
     public function setEventType($event_type)
@@ -382,7 +382,7 @@ class V1CashDrawerShift implements ArrayAccess
     }
     /**
      * Gets ended_at
-     * @return bool
+     * @return string
      */
     public function getEndedAt()
     {
@@ -391,7 +391,7 @@ class V1CashDrawerShift implements ArrayAccess
   
     /**
      * Sets ended_at
-     * @param bool $ended_at The time when the shift ended, in ISO 8601 format.
+     * @param string $ended_at The time when the shift ended, in ISO 8601 format.
      * @return $this
      */
     public function setEndedAt($ended_at)
@@ -505,7 +505,7 @@ class V1CashDrawerShift implements ArrayAccess
   
     /**
      * Sets description
-     * @param string $description The time when the timecard was created, in ISO 8601 format.
+     * @param string $description A description of the cash drawer shift.
      * @return $this
      */
     public function setDescription($description)

@@ -18,7 +18,7 @@ The payment gateway is operated by Square, Inc, which also offers POS card and c
 
 This module is compatible with Zen Cart® v1.5.4, v1.5.5, and v1.5.6
 
-This module works with PHP versions 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
+This module works with PHP versions 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 
 
 ## Requirements
@@ -45,7 +45,7 @@ This module works with PHP versions 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 ### PHP Files
 Once you've downloaded the [Square Plugin](https://www.zen-cart.com/downloads.php?do=file&id=156) zip file, unzip it.
 
-That will give you a folder with several sub-folders and files. Simply upload the files from <code>files_to_upload</code> into the corresponding folders on your own store:
+That will give you a folder with several sub-folders and files. Simply upload the files from `files_to_upload` into the corresponding folders on your own store:
 
 `/square_handler.php` (to be clear, this goes in the same folder as your existing ipn_main_handler.php file)
 
@@ -55,7 +55,7 @@ That will give you a folder with several sub-folders and files. Simply upload th
 
 `/includes/modules/payment/square_support/square_admin_notification.php`
 
-`/includes/modules/payment/square_support/ZenCartChargeRequest.php`
+`/includes/modules/payment/square_support/ZenCartCreatePaymentRequest.php`
 
 `/includes/languages/english/modules/payment/square.php`
 
@@ -184,4 +184,4 @@ For One-Page Checkout to work, you must **copy** the `jscript_square.php` file f
 
 ---
 
-_Copyright (c) 2018 Zen Ventures, LLC. All Rights reserved._
+_Copyright (c) 2020 Zen Ventures, LLC. All Rights reserved._

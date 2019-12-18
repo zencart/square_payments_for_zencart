@@ -4,9 +4,9 @@
  * www.squareup.com
  *
  * @package square
- * @copyright Copyright 2003-2017 Zen Cart Development Team
+ * @copyright Copyright 2003-2019 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> New in v1.5.5f $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified in v1.5.7 $
  */
 
 $outputStartBlock = '';
@@ -48,19 +48,19 @@ if (!empty($transaction) && $transaction->getId()) {
     $outputSquare .= '<strong>Payments Tendered: </strong>' . "\n";
     $outputSquare .= '</td><td class="main"><strong>Tender ID:</strong></td></tr>' . "\n";
 
-    $payments      = $transaction->getTenders();
+    $tenders = $transaction->getTenders();
     $payment_created_at = null;
     $last_status   = '';
-    foreach ($payments as $payment) {
-        $last_status = $payment->getCardDetails()->getStatus();
-        if (!$payment_created_at) $payment_created_at = $payment->getCreatedAt();
-        $currency_code = $payment->getAmountMoney()->getCurrency();
-        $amount = $currencies->format($this->convert_from_cents($payment->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+    foreach ($tenders as $tender) {
+        $last_status = $tender->getCardDetails()->getStatus();
+        if (!$payment_created_at) $payment_created_at = $tender->getCreatedAt();
+        $currency_code = $tender->getAmountMoney()->getCurrency();
+        $amount = $GLOBALS['currencies']->format($this->convert_from_cents($tender->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
         $outputSquare .= '<tr><td class="main">' . "\n";
-        $outputSquare .= $amount . ' ' . $currency_code  . ' ' . $last_status . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $payment->getCreatedAt() . "\n";
+        $outputSquare .= $amount . ' ' . $currency_code  . ' ' . $last_status . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $tender->getCreatedAt() . "\n";
         $outputSquare .= '</td><td class="main">' . "\n";
-        $outputSquare .= $payment->getId();
-        if ($payment->getNote()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($payment->getNote()));
+        $outputSquare .= $tender->getId();
+        if ($tender->getNote()) $outputSquare .= '<br>' . nl2br(zen_output_string_protected($tender->getNote()));
         $outputSquare .= '</td></tr>' . "\n";
     }
     $refunds = $transaction->getRefunds();
@@ -70,7 +70,7 @@ if (!empty($transaction) && $transaction->getId()) {
         $outputSquare .= '</td><td class="main">&nbsp;</td></tr>' . "\n";
         foreach ($refunds as $refund) {
             $currency_code = $refund->getAmountMoney()->getCurrency();
-            $amount = $currencies->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
+            $amount = $GLOBALS['currencies']->format($this->convert_from_cents($refund->getAmountMoney()->getAmount(), $currency_code), false, $currency_code);
             $outputSquare .= '<tr><td class="main">' . "\n";
             $outputSquare .= '-' . $amount . ' ' . $currency_code . ' ' . $refund->getStatus() . "\n<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $refund->getCreatedAt() . "\n";
             $outputSquare .= '</td><td class="main">' . "\n";
