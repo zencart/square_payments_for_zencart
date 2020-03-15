@@ -5,13 +5,14 @@
 The Square payment plugin module allows you to connect your Square account to your online store.
 You can also do refunds for online purchases directly from within the order screen in your store Admin.
 
-The payment gateway is operated by Square, Inc, which also offers POS card and chip readers to handle card-present transactions you can conduct from your phone or tablet in-store or mobile.
+The payment gateway is operated by Square, Inc, which also offers POS card-swipe and chip readers to handle card-present transactions you can conduct from your phone or tablet in-store or mobile.
 
-- Setup is quick: start accepting credit cards in less than 5 minutes, with your existing Square account.
+- Setup is quick: start accepting card payments in less than 5 minutes, with your existing Square account.
 - No monthly fees and no setup fees.
 - PCI Compliant. Customer never leaves your store!
-- Standard rates are 2.9% + $0.30 per transaction in US/Canada, and 2.5% for UK businesses. (Contact Square to negotiate.)
+- Standard rates are 2.9% + $0.30 per transaction for US and Canada businesses, and 2.5% for UK businesses. (Contact Square to negotiate.)
 - Funds are deposited in your bank account in 1-2 business days.
+- (If you are processing over $250,000 in annual sales, call (415) 805-9183 to connect with a US/Canada Square representative to discuss custom rates.)
 
 
 ## Compatibility
