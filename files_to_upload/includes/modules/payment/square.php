@@ -3,14 +3,14 @@
  * Square payments module
  * www.squareup.com
  *
- * Integrated using SquareConnect PHP SDK 2.20200122.0
+ * Integrated using SquareConnect PHP SDK 3.20200226.0
  *
  * REQUIRES PHP 5.4 or newer
  *
  * @package square
  * @copyright Copyright 2003-2020 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-02-04 $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-02-26 $
  */
 
 if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
@@ -190,6 +190,7 @@ class square extends base
                     'field' => '<div id="' . $this->code . '_cc-postcode"></div>',
                 ),
                 array(
+                    'title' => '',
                     'field' => '<div id="card-errors" class="alert error"></div>',
                 ),
                 array(
@@ -315,7 +316,21 @@ class square extends base
         $payment_request->setReferenceId((string)(substr(zen_session_id(), 0, 40)));
         $payment_request->setLocationId($location->getId());
 
-        $note = htmlentities(trim($order->billing['firstname'] . ' ' . $order->billing['lastname'] . ' ' . $this->currency_comment . ' ' . STORE_NAME));
+        // brief additional information transmitted as a "note", to max of 500 characters:
+        $extraNotes = defined('MODULES_PAYMENT_SQUARE_TEXT_ITEMS_ORDERED') ? MODULES_PAYMENT_SQUARE_TEXT_ITEMS_ORDERED : 'Ordered:';
+        if (count($order->products) < 100) {
+            for ($i = 0, $j = count($order->products); $i < $j; $i++) {
+                if ($i > 0 && $i < $j) $extraNotes .= ', ';
+                $extraNotes .= '(' . $order->products[$i]['qty'] . ') ' . $order->products[$i]['name'];
+            }
+        }
+        if ($order->delivery !== false && !empty($order->delivery['street_address']) && !empty($order->delivery['country']['iso_code_2'])) {
+            $extraNotes .= '; ';
+            $extraNotes .= defined('MODULES_PAYMENT_SQUARE_TEXT_DELIVERY_ADDRESS') ? MODULES_PAYMENT_SQUARE_TEXT_DELIVERY_ADDRESS : 'Deliver To: ';
+            $extraNotes .= $order->delivery['street_address'] . ', ' . $order->delivery['city'] . ', ' . $order->delivery['state'] . '  ' . $order->delivery['postcode'] . '  tel:' . $order->customer['telephone'];
+        }
+        // Use Notes to identify customer and store name
+        $note = htmlentities(trim($order->billing['firstname'] . ' ' . $order->billing['lastname'] . '; ' . $extraNotes . ' ' . $this->currency_comment . ' ' . STORE_NAME));
         $payment_request->setNote((string)substr($note, 0, 500));
 
         $payment_request->setBuyerEmailAddress(substr($order->customer['email_address'], 0, 255));
@@ -368,8 +383,6 @@ class square extends base
                     zen_redirect(zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL', true, false));
                 }
         }
-
-        // @TODO - CVV Status, AVS Status checks?
 
         // analyze for errors
         if (!empty($errors_object)) {

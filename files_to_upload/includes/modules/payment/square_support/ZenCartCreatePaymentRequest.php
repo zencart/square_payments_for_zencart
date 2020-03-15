@@ -7,7 +7,6 @@
 
 namespace SquareConnect\Model;
 
-use \ArrayAccess;
 /**
  * CreatePaymentRequest Class Doc Comment
  *

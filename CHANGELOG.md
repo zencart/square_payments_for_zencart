@@ -19,7 +19,7 @@
 0.92 - Dec 28, 2017 - Update auto-refresh of admin page when getting an Access Token
 
 
- 	Now when a token is obtained after pressing the green button in the Admin, the page should auto-refresh within 5 seconds to indicate that the token was successfully applied.
+ 	Now when a token is obtained after pressing the green button in the Admin, the page should auto-refresh within 5 seconds to indicate that the token was successfully applied. If it doesn't, simply refresh the page and the green button should go away.
 
 
 0.93 - May 2018 - Compatibility updates. This module REQUIRES PHP 5.4 or newer. Preferably 5.6 or 7.1. Specifically: PHP 5.3 is NOT supported by this module.
@@ -32,7 +32,8 @@
 
 0.97 - March 15 2019 - Updated to send headers forcing older 20181205 API version until code is refactored to use Square's new API endpoints introduced on 2019-03-13. Only files changed were the square_handler.php and the main square.php payment module file. (No change to the vendors folder.)
 
-1.0 - Feb 4, 2020 - Updated to Square's 2.20200122.0 API spec, which uses new endpoints and improves OAuth token renewal process. (Will require a re-authorization of the module after upgrading to this version. It may not happen for up to 30 days.)
+1.0 - March 15, 2020 - Updated to Square's 3.20200226.0 API spec, which uses new endpoints and improves OAuth token renewal process. (Will require a re-authorization of the module after upgrading to this version. It may not happen for up to 30 days.)
+Also includes brief product/shipping details in transaction comments.
 
 
 

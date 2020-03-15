@@ -10,7 +10,7 @@ The payment gateway is operated by Square, Inc, which also offers POS card and c
 - Setup is quick: start accepting credit cards in less than 5 minutes, with your existing Square account.
 - No monthly fees and no setup fees.
 - PCI Compliant. Customer never leaves your store!
-- Standard rates are 2.9% + $0.30 per transaction in US/Canada, and 2.5% for UK businesses.
+- Standard rates are 2.9% + $0.30 per transaction in US/Canada, and 2.5% for UK businesses. (Contact Square to negotiate.)
 - Funds are deposited in your bank account in 1-2 business days.
 
 
@@ -42,7 +42,7 @@ This module works with PHP versions 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 
 ## Installation
 
-### PHP Files
+### Installing Files To Your Zen Cart
 Once you've downloaded the [Square Plugin](https://www.zen-cart.com/downloads.php?do=file&id=156) zip file, unzip it.
 
 That will give you a folder with several sub-folders and files. Simply upload the files from `files_to_upload` into the corresponding folders on your own store:
@@ -59,17 +59,21 @@ That will give you a folder with several sub-folders and files. Simply upload th
 
 `/includes/languages/english/modules/payment/square.php`
 
-`/includes/modules/pages/checkout_payment/jscript_square.php`
+`/includes/modules/pages/checkout_payment/jscript_square.php` (this file may be needed in alternate checkout flows too, see Compatibility section below)
 
 **Note: You should NOT copy the README.md, LICENSE or CHANGELOG.md files to your live server.**
 
+
+###Upgrading
+
+Upgrade instructions: Delete the server's `/includes/classes/vendors/square` directory and the `/includes/modules/payment/square_support` directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the `files_to_upload` directory just as you would in the Installation steps above.  If you had placed extra copies of the jscript_square.php file in other checkout flow locations, re-copy that again using the updated file.
 
  
 ## Configure the Square Module in your store Admin
 
 1. This module needs those 2 configuration settings from your Square account 
 
-	(Login to https://squareup.com/dashboard/apps and click on My Apps in the upper-right corner of the page.  Next, if you have one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the "Go To Developer Portal" button, or visit https://connect.squareup.com/apps to get there) :
+	(Login to https://squareup.com/dashboard/apps and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the "Go To Developer Portal" button, or visit https://connect.squareup.com/apps to get there) :
    * Application ID (under "Credentials" tab)
    * Application Secret (under "OAuth" tab)  (NOTE: While you are there, make sure your Redirect URL has been set as described earlier)
 

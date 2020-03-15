@@ -129,66 +129,75 @@ pre code {
 .right {text-align:right}
 
 </style><style type="text/css">
-body{font-size:14px;line-height:1.6;font-family: Helvetica, arial, freesans, clean, sans-serif;padding: 20px;}
-body>*:first-child{margin-top:0!important;}
-body>*:last-child{margin-bottom:0!important;}
-body a:active {outline: none;}
-body a:hover {text-decoration: underline;}
-body a {color: #4183C4;text-decoration: none;}
-body a.absent{color:#c00;}
-body h1, body h2, h3, h4, h5, h6{margin:20px 0 10px;padding:0;font-weight:bold;-webkit-font-smoothing:antialiased;}
-body h1 tt, h1 code, h2 tt, h2 code, h3 tt, h3 code, h4 tt, h4 code, h5 tt, h5 code, h6 tt, h6 code{font-size:inherit;}
-body h1{font-size:28px;color:#000;}
-body h2{font-size:24px;border-bottom:1px solid #ccc;color:#000;}
-body h3{font-size:18px;}
-body h4{font-size:16px;}
-body h5{font-size:14px;}
-body h6{color:#777;font-size:14px;}
-body p, blockquote, ul, ol, dl, li, table, pre{margin:15px 0;}
-body hr{background:transparent url('../../images/modules/pulls/dirty-shade.png') repeat-x 0 0;border:0 none;color:#ccc;height:4px;padding:0;}
-body>h2:first-child,>h1:first-child,>h1:first-child+h2,>h3:first-child,>h4:first-child,>h5:first-child,>h6:first-child{margin-top:0;padding-top:0;}
-body h1+p, h2+p, h3+p, h4+p, h5+p, h6+p{margin-top:0;}
-body li p.first{display:inline-block;}
-body ul, ol{padding-left:30px;}
-body ul li>:first-child, ol li>:first-child{margin-top:0;}
-body ul li>:last-child, ol li>:last-child{margin-bottom:0;}
-body dl{padding:0;}
-body dl dt{font-size:14px;font-weight:bold;font-style:italic;padding:0;margin:15px 0 5px;}
-body dl dt:first-child{padding:0;}
-body dl dt>:first-child{margin-top:0;}
-body dl dt>:last-child{margin-bottom:0;}
-body dl dd{margin:0 0 15px;padding:0 15px;}
-body dl dd>:first-child{margin-top:0;}
-body dl dd>:last-child{margin-bottom:0;}
-body blockquote{border-left:4px solid #DDD;padding:0 15px;color:#777;}
-body blockquote>:first-child{margin-top:0;}
-body blockquote>:last-child{margin-bottom:0;}
-body table{padding:0;}
-body table tr{border-top:1px solid #ccc;background-color:#fff;margin:0;padding:0;}
-body table tr:nth-child(2n){background-color:#f8f8f8;}
-body table tr th{font-weight:bold;}
-body table tr th, table tr td{border:1px solid #ccc;text-align:left;margin:0;padding:6px 13px;}
-body table tr th>:first-child, table tr td>:first-child{margin-top:0;}
-body table tr th>:last-child, table tr td>:last-child{margin-bottom:0;}
-body img{max-width:100%;}
-body span.frame{display:block;overflow:hidden;}
-body span.frame>span{border:1px solid #ddd;display:block;float:left;overflow:hidden;margin:13px 0 0;padding:7px;width:auto;}
-body span.frame span img{display:block;float:left;}
-body span.frame span span{clear:both;color:#333;display:block;padding:5px 0 0;}
-body span.align-center{display:block;overflow:hidden;clear:both;}
-body span.align-center>span{display:block;overflow:hidden;margin:13px auto 0;text-align:center;}
-body span.align-center span img{margin:0 auto;text-align:center;}
-body span.align-right{display:block;overflow:hidden;clear:both;}
-body span.align-right>span{display:block;overflow:hidden;margin:13px 0 0;text-align:right;}
-body span.align-right span img{margin:0;text-align:right;}
-body span.float-left{display:block;margin-right:13px;overflow:hidden;float:left;}
-body span.float-left span{margin:13px 0 0;}
-body span.float-right{display:block;margin-left:13px;overflow:hidden;float:right;}
-body span.float-right>span{display:block;overflow:hidden;margin:13px auto 0;text-align:right;}
-body code, tt{margin:0 2px;padding:0 5px;white-space:nowrap;border:1px solid #eaeaea;background-color:#f8f8f8;border-radius:3px;}
-body pre>code{margin:0;padding:0;white-space:pre;border:none;background:transparent;}
-body .highlight pre, pre{background-color:#f8f8f8;border:1px solid #ccc;font-size:13px;line-height:19px;overflow:auto;padding:6px 10px;border-radius:3px;}
-body pre code, pre tt{background-color:transparent;border:none;}
+body {
+	font-family: "Geneva", Arial, sans-serif;
+	font-size: 13px;
+	margin: 10px;
+}
+
+a, a:visited {
+	color: #09c;
+}
+
+a:hover {
+	color: #336699;
+	text-decoration: none;
+}
+
+h1 {
+	margin: 0px 0px 10px;	
+	font-weight: bold;
+}
+
+h2 {
+	border-bottom: 2px dotted #ccc;
+	margin: 5px 0px 15px;	
+}
+
+h6 {
+	color: #09c;
+}
+
+blockquote {
+	font-family: "Georgia", Courier New, courier, sans-serif;
+	background: #efefef;
+	padding: 5px 10px;
+	border: solid 1px #ddd;
+	margin: 15px;
+	-webkit-border-radius:6px;
+	-moz-border-radius:6px;
+	border-radius:6px;
+	color:  #333;
+	
+}
+
+ul, ol {
+	margin-bottom: 15px;
+}
+
+li {
+	padding: 3px;
+}
+
+
+
+code {
+	background-color: #f1f1f1;
+    color: #336699;
+}
+
+pre {
+	background-color: #f1f1f1;
+}
+
+pre > code {
+	margin: 0px;
+	padding: 5px;
+	border: 0px;
+	background-color: #f1f1f1;
+}
+
+
 </style></head>
 <body>
 <h1 id="toc_0">Square Payment Module for Zen Cart</h1>
@@ -204,7 +213,7 @@ You can also do refunds for online purchases directly from within the order scre
 <li>Setup is quick: start accepting credit cards in less than 5 minutes, with your existing Square account.</li>
 <li>No monthly fees and no setup fees.</li>
 <li>PCI Compliant. Customer never leaves your store!</li>
-<li>Standard rates are 2.9% + $0.30 per transaction for US/Canada and 2.5% for UK businesses.</li>
+<li>Standard rates are 2.9% + $0.30 per transaction in US/Canada, and 2.5% for UK businesses. (Contact Square to negotiate.)</li>
 <li>Funds are deposited in your bank account in 1-2 business days.</li>
 </ul>
 
@@ -227,7 +236,7 @@ You can also do refunds for online purchases directly from within the order scre
 <ol>
 <li>Login at <a href="https://connect.squareup.com/apps">https://connect.squareup.com/apps</a> to view the apps you&#39;ve connected to your account.</li>
 <li>Click to create a New Application for your Zen Cart store to access. Give it a name, such as &quot;Webstore&quot;, and click Create at the bottom of the page.</li>
-<li>You may be prompted to allow a multi-location upgrade to your account's API configuration. Proceed.</li>
+<li>You may be prompted to allow a multi-location upgrade to your account&#39;s API configuration. Proceed.</li>
 <li>You will now be given access to some credentials. (If you already have a custom app and are trying to re-use it, you may need to revoke its token and regenerate one.)</li>
 <li>Click on the OAuth tab. In the &quot;<strong>Redirect URL</strong>&quot; field, enter <code>https://your_store_url.com/square_handler.php</code> and click Save at the bottom. (Ensure the URL you enter points to the correct directory (or subdirectory) on your server.)</li>
 <li>Now click the &quot;Show Secret&quot; button, and copy the Application Secret. You will need it in your store Admin.</li>
@@ -237,11 +246,11 @@ You can also do refunds for online purchases directly from within the order scre
 
 <h2 id="toc_5">Installation</h2>
 
-<h3 id="toc_6">PHP Files</h3>
+<h3 id="toc_6">Installing Files To Your Zen Cart</h3>
 
 <p>Once you&#39;ve downloaded the <a href="https://www.zen-cart.com/downloads.php?do=file&amp;id=156">Square Plugin</a> zip file, unzip it.</p>
 
-<p>That will give you a folder with several sub-folders and files. Simply upload the files from <code>files<em>to</em>upload</code> into the corresponding folders on your own store:</p>
+<p>That will give you a folder with several sub-folders and files. Simply upload the files from <code>files_to_upload</code> into the corresponding folders on your own store:</p>
 
 <p><code>/square_handler.php</code> (to be clear, this goes in the same folder as your existing ipn<em>main</em>handler.php file)</p>
 
@@ -255,16 +264,20 @@ You can also do refunds for online purchases directly from within the order scre
 
 <p><code>/includes/languages/english/modules/payment/square.php</code></p>
 
-<p><code>/includes/modules/pages/checkout_payment/jscript_square.php</code></p>
+<p><code>/includes/modules/pages/checkout_payment/jscript_square.php</code> (this file may be needed in alternate checkout flows too, see Compatibility section below)</p>
 
 <p><strong>Note: You should NOT copy the README.md, LICENSE or CHANGELOG.md files to your live server.</strong></p>
 
-<h2 id="toc_7">Configure the Square Module in your store Admin</h2>
+<h3 id="toc_7">Upgrading</h3>
+
+<p>Upgrade instructions: Delete the server&#39;s <code>/includes/classes/vendors/square</code> directory and the <code>/includes/modules/payment/square_support</code> directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the <code>files_to_upload</code> directory just as you would in the Installation steps above.  If you had placed extra copies of the jscript_square.php file in other checkout flow locations, re-copy that again using the updated file.</p>
+
+<h2 id="toc_8">Configure the Square Module in your store Admin</h2>
 
 <ol>
 <li><p>This module needs those 2 configuration settings from your Square account </p>
 
-<p>(Login to <a href="https://squareup.com/dashboard/apps">https://squareup.com/dashboard/apps</a> and click on My Apps in the upper-right corner of the page.  Next, if you have one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the &quot;Go To Developer Portal&quot; button, or visit <a href="https://connect.squareup.com/apps">https://connect.squareup.com/apps</a> to get there) :</p>
+<p>(Login to <a href="https://squareup.com/dashboard/apps">https://squareup.com/dashboard/apps</a> and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the &quot;Go To Developer Portal&quot; button, or visit <a href="https://connect.squareup.com/apps">https://connect.squareup.com/apps</a> to get there) :</p>
 
 <ul>
 <li>Application ID (under &quot;Credentials&quot; tab)</li>
@@ -279,27 +292,27 @@ You can also do refunds for online purchases directly from within the order scre
 
 <p>Done. Your checkout pages will now show a credit card payment option, powered by Square.</p>
 
-<h2 id="toc_8">Handling Refunds, Captures, Voids</h2>
+<h2 id="toc_9">Handling Refunds, Captures, Voids</h2>
 
-<h3 id="toc_9">Refunds</h3>
+<h3 id="toc_10">Refunds</h3>
 
 <p>When viewing a transaction in your store Admin, if it was paid using Square within the last 120 days, you will be shown the option to Refund some or all of the payment. Simply enter the amount you wish to refund. Then check the box to confirm, and click Submit. You will see a status message confirming the refund has been issued.</p>
 
 <p>NOTE: You SHOULD do all refunds via your store Admin. While you might be able to start a refund from your Square Dashboard, that will NOT automatically update your orders in Zen Cart to show the change in status.  But if you do the refund from within your Zen Cart Admin, the refund will show in both places, as well as in the customer&#39;s order-status-history, which is a more friendly experience for them.</p>
 
-<h3 id="toc_10">Captures</h3>
+<h3 id="toc_11">Captures</h3>
 
 <p>If you&#39;ve configured the module to &quot;authorize only&quot; instead of automatically capturing each &quot;purchase&quot;, then you will also see an option to Capture the previously-authorized transaction. CAPTURES MUST BE DONE WITHIN 6 DAYS, or they will be voided automatically, releasing the hold on those funds for the customer.</p>
 
 <p>NOTE: Captures can ONLY be done via your store Admin. You will not see uncaptured (authorize-only) transactions in your Square Dashboard.</p>
 
-<h3 id="toc_11">Voids</h3>
+<h3 id="toc_12">Voids</h3>
 
 <p>If you&#39;ve configured the module to &quot;authorize only&quot;, then you will see a Void option. This can be used to cancel an Authorization and release the &quot;hold&quot; on those funds back to the customer. </p>
 
 <p>NOTE: Voids can ONLY be done via your store Admin. You will not see authorize-only transactions in your Square Dashboard.</p>
 
-<h2 id="toc_12">Automatic Token Refreshing via cron</h2>
+<h2 id="toc_13">Automatic Token Refreshing via cron</h2>
 
 <p>This is optional. For low-traffic stores, this is recommended.</p>
 
@@ -313,19 +326,19 @@ You can also do refunds for online purchases directly from within the order scre
 
 <p>Again, if your token expires, Square will no longer show up during checkout for your customers. But you can fix it manually by clicking the green button to &quot;login and authorize your account&quot; as described in the Configuration section above.</p>
 
-<h2 id="toc_13">Testing</h2>
+<h2 id="toc_14">Testing</h2>
 
 <p>To perform test transactions, Square prefers that you simply set up a $1 product in your store, and test with a real credit card. You can refund the test transactions from inside your store Admin without any extra service fees.</p>
 
 <p>(This module <em>intentionally</em> does not support the use of the Square Sandbox, at Square&#39;s request. Use your store&#39;s primary credentials as described earlier, and test using real credit cards and real transactions.)</p>
 
-<h2 id="toc_14">Support</h2>
+<h2 id="toc_15">Support</h2>
 
 <p>If you are receiving errors from Square or are having problems configuring settings in your Square Account, contact Square Support.</p>
 
 <p>If you are running into difficulty configuring the module in your store, or are getting &quot;unusual&quot; errors during checkout, report your issue on the Zen Cart Support Site at <a href="https://www.zen-cart.com/forum.php">https://www.zen-cart.com/forum.php</a> (create a free account profile in order to post)</p>
 
-<h3 id="toc_15">Common errors</h3>
+<h3 id="toc_16">Common errors</h3>
 
 <ol>
 <li><p><code>SQ-NONCE-FAILURE</code>: This can be caused by template differences, or javascript/jQuery conflicts in your checkout pages. </p>
@@ -347,7 +360,7 @@ If you re-used a pre-existing &quot;application&quot; in your Square Apps menu, 
 The module contains some CSS markup in the very bottom of the <code>/includes/modules/pages/checkout_payment/jscript_square.php</code> file, intended to create uniformity for the custom fields Square creates. For 99% of stores you will NOT need to change this; but in rare cases you may want to alter this CSS slightly to suit your needs. </p></li>
 </ol>
 
-<h3 id="toc_16">Problems with OAuth Token Generation</h3>
+<h3 id="toc_17">Problems with OAuth Token Generation</h3>
 
 <p>Common causes of problems with this:</p>
 
@@ -365,9 +378,9 @@ The module contains some CSS markup in the very bottom of the <code>/includes/mo
 <li><p>You&#39;re running behind a firewall that&#39;s got aggressive restrictions to files. There&#39;s nothing special required for <code>square_handler.php</code>: It&#39;s just a simple PHP file, and will be accessed via port 443 ... just like any other file. There should be no rule against it.</p></li>
 </ol>
 
-<h2 id="toc_17">Compatibility With Various Zen Cart Plugins</h2>
+<h2 id="toc_18">Compatibility With Various Zen Cart Plugins</h2>
 
-<h3 id="toc_18">One-Page Checkout by lat9</h3>
+<h3 id="toc_19">One-Page Checkout by lat9</h3>
 
 <p>For One-Page Checkout to work, you must <strong>copy</strong> the <code>jscript_square.php</code> file from <code>/includes/modules/pages/checkout_payment/</code> into the <code>/includes/modules/pages/checkout_one/</code> folder.</p>
 

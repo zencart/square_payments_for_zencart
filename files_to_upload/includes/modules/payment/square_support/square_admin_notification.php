@@ -4,7 +4,7 @@
  * www.squareup.com
  *
  * @package square
- * @copyright Copyright 2003-2019 Zen Cart Development Team
+ * @copyright Copyright 2003-2020 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
  * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified in v1.5.7 $
  */
@@ -20,7 +20,7 @@ $output           = '';
 
 
 $outputStartBlock .= '<table class="noprint">' . "\n";
-$outputStartBlock .= '<tr style="background-color : #bbbbbb; border-style : dotted;">' . "\n";
+$outputStartBlock .= '<tr style="background-color : #bbbbbb; border: 1px solid black;">' . "\n";
 $outputEndBlock   .= '</tr>' . "\n";
 $outputEndBlock   .= '</table>' . "\n";
 
@@ -50,7 +50,7 @@ if (!empty($transaction) && $transaction->getId()) {
 
     $tenders = $transaction->getTenders();
     $payment_created_at = null;
-    $last_status   = '';
+    $last_status = '';
     foreach ($tenders as $tender) {
         $last_status = $tender->getCardDetails()->getStatus();
         if (!$payment_created_at) $payment_created_at = $tender->getCreatedAt();
@@ -86,7 +86,7 @@ if (!empty($transaction) && $transaction->getId()) {
 
 if (method_exists($this, '_doRefund')) {
     $outputRefund .= '<td><table class="noprint">' . "\n";
-    $outputRefund .= '<tr style="background-color : #dddddd; border-style : dotted;">' . "\n";
+    $outputRefund .= '<tr style="background-color : #dddddd; border: 1px solid black;">' . "\n";
     $outputRefund .= '<td class="main">' . MODULE_PAYMENT_SQUARE_ENTRY_REFUND_TITLE . '<br />' . "\n";
     $outputRefund .= zen_draw_form('squarerefund', FILENAME_ORDERS, zen_get_all_get_params(array('action')) . 'action=doRefund', 'post', '', true) . zen_hide_session_id();;
     $outputRefund .= MODULE_PAYMENT_SQUARE_ENTRY_REFUND . '<br />';
@@ -101,7 +101,7 @@ if (method_exists($this, '_doRefund')) {
 
 if (method_exists($this, '_doCapt')) {
     $outputCapt .= '<td valign="top"><table class="noprint">' . "\n";
-    $outputCapt .= '<tr style="background-color : #dddddd; border-style : dotted;">' . "\n";
+    $outputCapt .= '<tr style="background-color : #dddddd; border: 1px solid black;">' . "\n";
     $outputCapt .= '<td class="main">' . MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE_TITLE . '<br />' . "\n";
     $outputCapt .= zen_draw_form('squarecapture', FILENAME_ORDERS, zen_get_all_get_params(array('action')) . 'action=doCapture', 'post', '', true) . zen_hide_session_id();
     $outputCapt .= MODULE_PAYMENT_SQUARE_ENTRY_CAPTURE . '<br />';
@@ -115,7 +115,7 @@ if (method_exists($this, '_doCapt')) {
 
 if (method_exists($this, '_doVoid')) {
     $outputVoid .= '<td valign="top"><table class="noprint">' . "\n";
-    $outputVoid .= '<tr style="background-color : #dddddd; border-style : dotted;">' . "\n";
+    $outputVoid .= '<tr style="background-color : #dddddd; border: 1px solid black;">' . "\n";
     $outputVoid .= '<td class="main">' . MODULE_PAYMENT_SQUARE_ENTRY_VOID_TITLE . '<br />' . "\n";
     $outputVoid .= zen_draw_form('squarevoid', FILENAME_ORDERS, zen_get_all_get_params(array('action')) . 'action=doVoid', 'post', '', true) . zen_hide_session_id();
     $outputVoid .= MODULE_PAYMENT_SQUARE_ENTRY_VOID;
