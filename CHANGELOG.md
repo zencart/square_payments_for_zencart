@@ -35,7 +35,7 @@
 1.0 - March 15, 2020 - Updated to Square's 3.20200226.0 API spec, which uses new endpoints and improves OAuth token renewal process. (Will require a re-authorization of the module after upgrading to this version. It may not happen for up to 30 days.)
 Also includes brief product/shipping details in transaction comments.
 
-
+1.1 - April 8, 2020 - Updated to Square SDK version 3.20200325.0. Also fixed a token-refresh bug from v1.0
 
 
 ---

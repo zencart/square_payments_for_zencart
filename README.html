@@ -213,7 +213,7 @@ You can also do refunds for online purchases directly from within the order scre
 <li>Setup is quick: start accepting card payments in less than 5 minutes, with your existing Square account.</li>
 <li>No monthly fees and no setup fees.</li>
 <li>PCI Compliant. Customer never leaves your store!</li>
-<li>Standard rates are 2.9% + $0.30 per transaction for US and Canada businesses, and 2.5% for UK businesses.</li>
+<li>Standard rates are 2.9% + $0.30 per transaction for US and Canada businesses, and 2.5% for UK businesses. (Contact Square to negotiate.)</li>
 <li>Funds are deposited in your bank account in 1-2 business days.</li>
 <li>(If you are processing over $250,000 in annual sales, call (415) 805-9183 to connect with a US/Canada Square representative to discuss custom rates.)</li>
 </ul>
@@ -271,12 +271,24 @@ You can also do refunds for online purchases directly from within the order scre
 
 <h3 id="toc_7">Upgrading</h3>
 
-<p>Upgrade instructions: Delete the server&#39;s <code>/includes/classes/vendors/square</code> directory and the <code>/includes/modules/payment/square_support</code> directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the <code>files_to_upload</code> directory just as you would in the Installation steps above.  If you had placed extra copies of the jscript_square.php file in other checkout flow locations, re-copy that again using the updated file.</p>
+<p>Upgrade instructions: </p>
+
+<ol>
+<li><p><strong>Delete</strong> the server&#39;s <code>/includes/classes/vendors/square</code> directory and the <code>/includes/modules/payment/square_support</code> directory (You will replace these in a moment, but this deletes older obsolete files first). </p></li>
+<li><p>Then upload all the files from the <code>files_to_upload</code> directory <strong>just as you would in the Installation steps above</strong>.</p></li>
+<li><p>If you had placed extra copies of the <code>jscript_square.php</code> file in other checkout flow locations, re-copy that again using the updated file. (common example would be for the One-Page-Checkout addon, described later in this document)</p></li>
+<li><p>Login to <a href="https://squareup.com/dashboard/apps">https://squareup.com/dashboard/apps</a> and click on My Apps. Click the Manage App button next to your listed App.</p>
+
+<ul>
+<li>Make sure you are in Production (otherwise transactions aren&#39;t real!!!)</li>
+<li>Scroll down to the API Version settings, and make sure your Production API Version is at least version 2020-03-25 or later ... more specifically (in case this document is outdated), best to be sure it matches the version listed in the top of the /includes/modules/payment/square.php file.</li>
+</ul></li>
+</ol>
 
 <h2 id="toc_8">Configure the Square Module in your store Admin</h2>
 
 <ol>
-<li><p>This module needs those 2 configuration settings from your Square account </p>
+<li><p>This module needs 2 configuration settings from your Square account, from when you created your App inside Square:</p>
 
 <p>(Login to <a href="https://squareup.com/dashboard/apps">https://squareup.com/dashboard/apps</a> and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the &quot;Go To Developer Portal&quot; button, or visit <a href="https://connect.squareup.com/apps">https://connect.squareup.com/apps</a> to get there) :</p>
 

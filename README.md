@@ -67,12 +67,22 @@ That will give you a folder with several sub-folders and files. Simply upload th
 
 ###Upgrading
 
-Upgrade instructions: Delete the server's `/includes/classes/vendors/square` directory and the `/includes/modules/payment/square_support` directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the `files_to_upload` directory just as you would in the Installation steps above.  If you had placed extra copies of the jscript_square.php file in other checkout flow locations, re-copy that again using the updated file.
+Upgrade instructions: 
+
+1. **Delete** the server's `/includes/classes/vendors/square` directory and the `/includes/modules/payment/square_support` directory (You will replace these in a moment, but this deletes older obsolete files first). 
+
+2. Then upload all the files from the `files_to_upload` directory **just as you would in the Installation steps above**.
+
+3. If you had placed extra copies of the `jscript_square.php` file in other checkout flow locations, re-copy that again using the updated file. (common example would be for the One-Page-Checkout addon, described later in this document)
+
+4. Login to https://squareup.com/dashboard/apps and click on My Apps. Click the Manage App button next to your listed App.
+ - Make sure you are in Production (otherwise transactions aren't real!!!)
+ - Scroll down to the API Version settings, and make sure your Production API Version is at least version 2020-03-25 or later ... more specifically (in case this document is outdated), best to be sure it matches the version listed in the top of the /includes/modules/payment/square.php file.
 
  
 ## Configure the Square Module in your store Admin
 
-1. This module needs those 2 configuration settings from your Square account 
+1. This module needs 2 configuration settings from your Square account, from when you created your App inside Square:
 
 	(Login to https://squareup.com/dashboard/apps and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the "Go To Developer Portal" button, or visit https://connect.squareup.com/apps to get there) :
    * Application ID (under "Credentials" tab)
