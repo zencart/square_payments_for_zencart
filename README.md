@@ -17,9 +17,10 @@ The payment gateway is operated by Square, Inc, which also offers POS card-swipe
 
 ## Compatibility
 
-This module is compatible with Zen Cart® v1.5.4, v1.5.5, and v1.5.6
-
-This module works with PHP versions 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
+Version 1.x of this module:
+ - is compatible with Zen Cart® versions 1.5.4 to 1.5.7
+ - requires a version of PHP between 5.4-7.4
+ - works with Square API Versions up to 3.20200528.1
 
 
 ## Requirements
