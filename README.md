@@ -40,6 +40,11 @@ This module works with PHP versions 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 8. See "Admin module configuration" below.
 
 
+## API Versions
+It is best to configure your Square's API Version to match the API version this module is written for. To manually check for the API version the module is built for, see the square.php payment module file.
+
+When switching API versions in your Square Dashboard, you can ignore the "Webhooks" switch because this module doesn't use Webhooks presently.
+
 
 ## Installation
 
