@@ -1155,7 +1155,7 @@ class square extends base
         $api_instance = new \SquareConnect\Api\PaymentsApi($this->_apiConnection);
 
         try {
-            $result = $api_instance->completePayment($payment_id);
+            $result = $api_instance->completePayment($payment_id, new \SquareConnect\Model\CompletePaymentRequest([]));
             $errors_object = $result->getErrors();
             $this->logTransactionData(array('capture request' => 'payment ' . $payment_id), array(), (string)$errors_object);
         } catch (\SquareConnect\ApiException $e) {
