@@ -75,7 +75,7 @@ class square extends base
     public function __construct()
     {
         require DIR_FS_CATALOG . DIR_WS_CLASSES . 'vendors/square/connect/autoload.php';
-        require_once DIR_FS_CATALOG . 'includes/modules/payment/square_support/ZenCartCreatePaymentRequest.php';
+        require_once DIR_FS_CATALOG . 'includes/modules/payment/square_support/ZenCartConnectCreatePaymentRequest.php';
 
         global $order;
         $this->code = 'square';
@@ -310,7 +310,7 @@ class square extends base
             );
         }
 
-        $payment_request = new \SquareConnect\Model\ZenCartCreatePaymentRequest();
+        $payment_request = new \SquareConnect\Model\ZenCartConnectCreatePaymentRequest();
         $money = new \SquareConnect\Model\Money();
         $money->setAmount($this->convert_to_cents($payment_amount, $currency_code))->setCurrency((string)$currency_code);
         $payment_request->setAmountMoney($money);

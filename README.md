@@ -62,7 +62,7 @@ That will give you a folder with several sub-folders and files. Simply upload th
 
 `/includes/modules/payment/square_support/square_admin_notification.php`
 
-`/includes/modules/payment/square_support/ZenCartCreatePaymentRequest.php`
+`/includes/modules/payment/square_support/ZenCartConnectCreatePaymentRequest.php`
 
 `/includes/languages/english/modules/payment/square.php`
 
