@@ -29,7 +29,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '1.1';
+    public $moduleVersion = '1.2';
     /**
      * $title is the displayed name for this payment method
      *
