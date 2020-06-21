@@ -10,9 +10,13 @@ The payment gateway is operated by Square, Inc, which also offers POS card-swipe
 - Setup is quick: start accepting card payments in less than 5 minutes, with your existing Square account.
 - No monthly fees and no setup fees.
 - PCI Compliant. Customer never leaves your store!
-- Standard rates are 2.9% + $0.30 per transaction for US and Canada businesses, and 2.5% for UK businesses. (Contact Square to negotiate.)
+- [Standard rates](https://developer.squareup.com/docs/payments-pricing#pricing-for-handling-online-and-in-app-payments) for Online payments are 2.9% + $0.30 per transaction for US and Canada businesses, and 2.5% for UK businesses. (Contact Square to negotiate.)
 - Funds are deposited in your bank account in 1-2 business days.
 - (If you are processing over $250,000 in annual sales, call (415) 805-9183 to connect with a US/Canada Square representative to discuss custom rates.)
+
+
+## Countries Supported:
+See the "online payments" section of this page for the types of payments Square currently supports in your country: https://developer.squareup.com/docs/payment-card-support-by-country#card-for-payment-online-or-mobile
 
 
 ## Compatibility
