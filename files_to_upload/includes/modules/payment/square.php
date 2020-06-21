@@ -1264,13 +1264,15 @@ class square extends base
         $msg = '';
         $first_category = null;
         $first_code = null;
-        foreach ($error_object as $err) {
-            $category = method_exists($err, 'getCategory') ? $err->getCategory() : $err->category;
-            $code = method_exists($err, 'getCode') ? $err->getCode() : $err->code;
-            $detail = method_exists($err, 'getDetail') ? $err->getDetail() : $err->detail;
-            $msg .= "$code: $detail\n";
-            if (is_null($first_category)) $first_category = $category;
-            if (is_null($first_code)) $first_code = $code;
+        if (!empty($error_object)) {
+            foreach ($error_object as $err) {
+                $category = method_exists($err, 'getCategory') ? $err->getCategory() : $err->category;
+                $code = method_exists($err, 'getCode') ? $err->getCode() : $err->code;
+                $detail = method_exists($err, 'getDetail') ? $err->getDetail() : $err->detail;
+                $msg .= "$code: $detail\n";
+                if (is_null($first_category)) $first_category = $category;
+                if (is_null($first_code)) $first_code = $code;
+            }
         }
         $msg = trim($msg, "\n");
         $msg = str_replace("\n", "\n<br>", $msg);
@@ -1279,7 +1281,6 @@ class square extends base
 
         return array('detail' => $msg, 'category' => $first_category, 'code' => $first_code);
     }
-
 }
 
 // helper for Square admin configuration: locations selector
