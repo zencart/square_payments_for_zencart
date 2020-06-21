@@ -3,14 +3,14 @@
  * Square payments module
  * www.squareup.com
  *
- * Integrated using SquareConnect PHP SDK 3.20200325.0
+ * Integrated using SquareConnect PHP SDK 3.20200528.1
  *
  * REQUIRES PHP 5.4 or newer
  *
  * @package square
  * @copyright Copyright 2003-2020 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-04-08 $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-06-21 $
  */
 
 if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
@@ -29,7 +29,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '1.2';
+    public $moduleVersion = '1.3';
     /**
      * $title is the displayed name for this payment method
      *
