@@ -174,6 +174,9 @@ class square extends base
             'module' => $this->title,
             'fields' => array(
                 array(
+                    'field' => '<div>' . MODULE_PAYMENT_SQUARE_TEXT_NOTICES_TO_CUSTOMER . '</div>',
+                ),
+                array(
                     'title' => MODULE_PAYMENT_SQUARE_TEXT_CREDIT_CARD_NUMBER,
                     'field' => '<div id="' . $this->code . '_cc-number"></div><div id="sq-card-brand"></div>',
                 ),
