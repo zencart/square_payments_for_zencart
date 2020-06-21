@@ -24,13 +24,13 @@ This module works with PHP versions 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5 and 5.4
 
 ## Requirements
 
-1. You must be using SSL on your website
-2. You will need a Square account, already validated and connected with your bank. You may create a Square merchant account at [squareup.com](https://squareup.com)
-3. You need to create an App inside your Square account. See below for instructions.
+1. You will need a Square account, already validated and connected with your bank. You may create a Square merchant account at [squareup.com](https://squareup.com)
+2. You need to create an App inside your Square account. See below for instructions.
+3. You must be using SSL on your website
 
 
 ## Creating an App inside your Square account
-1. Login at https://connect.squareup.com/apps to view the apps you've connected to your account.
+1. Login at https://developer.squareup.com/apps to view the apps you've connected to your account.
 2. Click to create a New Application for your Zen Cart store to access. Give it a name, such as "Webstore", and click Create at the bottom of the page.
 3. You may be prompted to allow a multi-location upgrade to your account's API configuration. Proceed.
 4. You will now be given access to some credentials. (If you already have a custom app and are trying to re-use it, you may need to revoke its token and regenerate one.)
@@ -84,7 +84,7 @@ Upgrade instructions:
 
 1. This module needs 2 configuration settings from your Square account, from when you created your App inside Square:
 
-	(Login to https://squareup.com/dashboard/apps and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the "Go To Developer Portal" button, or visit https://connect.squareup.com/apps to get there) :
+	(Login to https://squareup.com/dashboard/apps and click on My Apps.  Next, if there is one, click the Manage App button next to your listed App to obtain the configuration settings. Alternatively, click the "Go To Developer Portal" button, or visit https://developer.squareup.com/apps to get there) :
    * Application ID (under "Credentials" tab)
    * Application Secret (under "OAuth" tab)  (NOTE: While you are there, make sure your Redirect URL has been set as described earlier)
 
