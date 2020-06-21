@@ -30,6 +30,7 @@ class square extends base
      * $moduleVersion is the plugin version number
      */
     public $moduleVersion = '1.3';
+    protected $apiVersion = '3.20200325.1';
     /**
      * $title is the displayed name for this payment method
      *
@@ -82,7 +83,16 @@ class square extends base
         $this->enabled = (defined('MODULE_PAYMENT_SQUARE_STATUS') && MODULE_PAYMENT_SQUARE_STATUS == 'True');
         $this->sort_order = defined('MODULE_PAYMENT_SQUARE_SORT_ORDER') ? MODULE_PAYMENT_SQUARE_SORT_ORDER : null;
         $this->title = MODULE_PAYMENT_SQUARE_TEXT_CATALOG_TITLE; // Payment module title in Catalog
-        $this->description = '<strong>Square Payments Module ' . $this->moduleVersion . '</strong><br><br>' . MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION;
+        $this->description = '<strong>Square Payments Module ' . $this->moduleVersion . '</strong>';
+        $this->description .= '<br>[designed for API: ' . $this->apiVersion . ']';
+
+        if (IS_ADMIN_FLAG === true) {
+            $this->sdkApiVersion = (new \SquareConnect\Configuration())->getUserAgent();
+            $this->description .= '<br>[using SDK: ' . $this->sdkApiVersion . ']';
+        }
+
+        $this->description .= '<br><br>' . MODULE_PAYMENT_SQUARE_TEXT_DESCRIPTION;
+
         if (IS_ADMIN_FLAG === true) {
             $this->title = MODULE_PAYMENT_SQUARE_TEXT_ADMIN_TITLE;
             if (defined('MODULE_PAYMENT_SQUARE_STATUS')) {
