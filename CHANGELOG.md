@@ -1,7 +1,8 @@
 # Square Payment Module for Zen Cart
 
-- Requires PHP 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5, or 5.4
-- Requires Zen Cart v1.5.4 or v1.5.5 or v1.5.6 or v1.5.7
+Version 1:
+ - Requires PHP 7.4, 7.3, 7.2, 7.1, 7.0, 5.6, 5.5, or 5.4
+ - Requires Zen Cart v1.5.4 or v1.5.5 or v1.5.6 or v1.5.7
 
 
 0.77 - June 23, 2017 - First Release - based on Square Connect PHP SDK 2.2.0
@@ -36,6 +37,8 @@
 Also includes brief product/shipping details in transaction comments.
 
 1.1 - April 8, 2020 - Updated to Square SDK version 3.20200325.0. Also fixed a token-refresh bug from v1.0
+
+1.2 - June 21, 2020 - Fixed refund bug and capture bug in v1.1
 
 
 ---
