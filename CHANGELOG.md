@@ -18,10 +18,7 @@ Version 1:
 0.91 - Dec 18, 2017 - Fix compatibility with OnePageCheckout plugin. Also updated to Square Connect SDK v2.5.1
 
 0.92 - Dec 28, 2017 - Update auto-refresh of admin page when getting an Access Token
-
-
  	Now when a token is obtained after pressing the green button in the Admin, the page should auto-refresh within 5 seconds to indicate that the token was successfully applied. If it doesn't, simply refresh the page and the green button should go away.
-
 
 0.93 - May 2018 - Compatibility updates. This module REQUIRES PHP 5.4 or newer. Preferably 5.6 or 7.1. Specifically: PHP 5.3 is NOT supported by this module.
 
@@ -36,7 +33,7 @@ Version 1:
 1.0 - March 15, 2020 - Updated to Square's 3.20200226.0 API spec, which uses new endpoints and improves OAuth token renewal process. (Will require a re-authorization of the module after upgrading to this version. It may not happen for up to 30 days.)
 Also includes brief product/shipping details in transaction comments.
 
-1.1 - April 8, 2020 - Updated to Square SDK version 3.20200325.0. Also fixed a token-refresh bug from v1.0
+1.1 - April 8, 2020 - Updated to SquareConnect SDK version 3.20200325.0. Also fixed a token-refresh bug from v1.0
 
 1.2 - June 21, 2020 - Fixed refund bug and capture bug in v1.1
 
@@ -45,4 +42,14 @@ Also includes brief product/shipping details in transaction comments.
 
 ###Upgrading
 
-Upgrade instructions: Delete the server's /includes/classes/vendors/square directory and the /includes/modules/payment/square_support directory (You will replace these in a moment, but this deletes older obsolete files first). Then upload all the files from the files_to_upload directory, putting them into the same directory on the server as you find them in this zip.
+Upgrade instructions: 
+
+1. Delete two directories on your server:
+ - /includes/classes/vendors/square  
+ - /includes/modules/payment/square_support
+
+  (You will replace these directories in the next step, but this deletes older obsolete files first). 
+
+2. Then upload all the files from the files_to_upload directory, putting them into the same directory on the server as you find them in this zip.
+
+3. Consider updating the API version in your Square account to match the version for which this module is written: log into your Square account Dashboard, click on Apps, click on your app for Zen Cart, click on Production, and use the API dropdown to update it. Ignore the Webhooks option as this module doesn't use webhooks at this present moment.
