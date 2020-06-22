@@ -29,8 +29,11 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '1.3';
-    protected $apiVersion = '3.20200325.1';
+    public $moduleVersion = '1.4';
+    /**
+     * API version this module was last updated to use
+     */
+    protected $apiVersion = '3.20200528.1';
     /**
      * $title is the displayed name for this payment method
      *
