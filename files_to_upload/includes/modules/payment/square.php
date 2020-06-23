@@ -838,14 +838,14 @@ class square extends base
      * fetch original payment details for an order
      *
      * @param $order_id
-     * @return \SquareConnect\Model\Order
+     * @return \SquareConnect\Model\Order[]
      */
     protected function lookupPaymentForOrder($order_id)
     {
         $records = $this->lookupOrderDetails($order_id);
 
-        if (count($records) < 1) {
-            return '';
+        if (empty($records)) {
+            return (new \SquareConnect\Model\BatchRetrieveOrdersResponse(['orders' => new \SquareConnect\Model\Order()]))->getOrders();
         }
 
         return $records[0];
@@ -1093,8 +1093,14 @@ class square extends base
 
         $refundNote = strip_tags(zen_db_input($_POST['refnote']));
 
-        $payments = $this->lookupPaymentForOrder($oID)->getTenders();
-        $payment = $payments[0];
+        $record = $this->lookupPaymentForOrder($oID);
+        if (!method_exists($record, 'getTenders')) {
+            $messageStack->add_session('ERROR: Could not look up details. Probable bad record number, or incorrect Square account credentials.', 'error');
+            return false;
+        }
+        $transactions = $record->getTenders();
+
+        $payment = $transactions[0];
         $currency_code = $payment->getAmountMoney()->getCurrency();
 
         $refund_details = array(
@@ -1162,7 +1168,12 @@ class square extends base
 
         if (!$proceedToCapture) return false;
 
-        $transactions = $this->lookupPaymentForOrder($oID)->getTenders();
+        $record = $this->lookupPaymentForOrder($oID);
+        if (!method_exists($record, 'getTenders')) {
+            $messageStack->add_session('ERROR: Could not look up details. Probable bad record number, or incorrect Square account credentials.', 'error');
+            return false;
+        }
+        $transactions = $record->getTenders();
         $transaction = $transactions[0];
         $payment_id = $transaction->getPaymentId();
 
@@ -1218,7 +1229,12 @@ class square extends base
         }
         if (!$proceedToVoid) return false;
 
-        $transactions = $this->lookupPaymentForOrder($oID)->getTenders();
+        $record = $this->lookupPaymentForOrder($oID);
+        if (!method_exists($record, 'getTenders')) {
+            $messageStack->add_session('ERROR: Could not look up details. Probable bad record number, or incorrect Square account credentials.', 'error');
+            return false;
+        }
+        $transactions = $record->getTenders();
         $transaction = $transactions[0];
         $payment_id = $transaction->getPaymentId();
 
