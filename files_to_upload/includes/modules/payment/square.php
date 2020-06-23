@@ -10,7 +10,7 @@
  * @package square
  * @copyright Copyright 2003-2020 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-06-21 $
+ * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-06-22 $
  */
 
 if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
@@ -29,7 +29,7 @@ class square extends base
     /**
      * $moduleVersion is the plugin version number
      */
-    public $moduleVersion = '1.4';
+    public $moduleVersion = '1.5';
     /**
      * API version this module was last updated to use
      */

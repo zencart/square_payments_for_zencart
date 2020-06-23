@@ -40,7 +40,12 @@ Also includes brief product/shipping details in transaction comments.
 1.3 - June 21, 2020 - Updated to SquareConnect SDK version 3.20200528.1
 (Note: This is the last release of SquareConnect SDK that is compatible with PHP 5. Future versions will require PHP 7.1+, and will be integrated to the SquarePHP SDK (not SquareConnect). A version 2 of this module will be released to work with the new SDK, but this will also limit which Zen Cart versions the module is compatible with. If you are not using Zen Cart 1.5.6 or newer and PHP 7.1 or newer, now is the time to upgrade!)
 
-1.4 - June 21, 2020 - Updated admin sidebar to show API/SDK version numbers for easy reference.
+1.4 - June 21, 2020 - Updated admin sidebar to show API/SDK version numbers for easy reference. (only changed square.php)
+
+1.5 - June 22, 2020 - Added improvements to catching errors that occur during capture/void/refund. (only changed square.php)
+
+
+
 
 ---
 
