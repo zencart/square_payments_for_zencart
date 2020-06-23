@@ -1061,7 +1061,7 @@ class square extends base
             }
         }
         if (($errors != '' && stristr(MODULE_PAYMENT_SQUARE_LOGGING, 'Email on Failures')) || strstr(MODULE_PAYMENT_SQUARE_LOGGING, 'Email Always')) {
-            zen_mail(STORE_NAME, STORE_OWNER_EMAIL_ADDRESS, 'Square Alert (customer transaction error) ' . date('M-d-Y h:i:s'), $logMessage, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS,
+            zen_mail(STORE_NAME, STORE_OWNER_EMAIL_ADDRESS, 'Square Alert (' . (IS_ADMIN_FLAG === true ? 'admin' : 'customer') . ' transaction error) ' . date('M-d-Y h:i:s'), $logMessage, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS,
                 array('EMAIL_MESSAGE_HTML' => nl2br($logMessage)), 'debug');
         }
     }
