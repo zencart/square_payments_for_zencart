@@ -1,5 +1,10 @@
 # Square Payment Module for Zen Cart
 
+## Deprecation Notice
+
+> This is the SqPaymentForm based version of Square Payments.
+> This module is deprecated and will cease to work in July 2022. Instead, use the newer Square Web Payment module: https://www.zen-cart.com/downloads.php?do=file&id=2345
+
 ## About
 
 The Square payment plugin module allows you to connect your Square account to your online store.
