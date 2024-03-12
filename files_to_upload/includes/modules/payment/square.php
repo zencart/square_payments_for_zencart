@@ -58,8 +58,8 @@ class square extends base
     /**
      * transaction vars hold the IDs of the completed payment
      */
-    public $transaction_id, $transaction_messages, $auth_code;
-    protected $currency_comment, $transaction_date;
+    public $transaction_id, $transaction_messages, $auth_code, $order_status;
+    protected $currency_comment, $transaction_date, $_logDir, $transaction_status, $sdkApiVersion, $_check, $gateway_currency;
     /**
      * Square configuration/connection
      * @var SquareConnect\Configuration
@@ -90,6 +90,7 @@ class square extends base
 
         if (IS_ADMIN_FLAG === true) {
             $this->sdkApiVersion = (new \SquareConnect\Configuration())->getUserAgent();
+            //$this->sdkApiVersion = (new \Square\SquareClient())->getSquareVersion();
             $this->description .= '<br>[using SDK: ' . $this->sdkApiVersion . ']';
         }
 
@@ -999,6 +1000,10 @@ class square extends base
         return $keys;
     }
 
+    function help() {
+       return array('link' => 'https://docs.zen-cart.com/user/payment/square/');
+    }
+
     /**
      * Check and fix table structure if appropriate
      *
@@ -1122,15 +1127,15 @@ class square extends base
             $transaction = $result->getRefund();
             $this->logTransactionData(['refund request' => 'payment ' . $payment->getId(), 'id' => '[refund]'], $refund_details, (string)$errors_object);
 
-        $currency_code = $transaction->getAmountMoney()->getCurrency();
-        $amount = $currencies->format($transaction->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code);
+            $currency_code = $transaction->getAmountMoney()->getCurrency();
+            $amount = $currencies->format($transaction->getAmountMoney()->getAmount() / (pow(10, $currencies->get_decimal_places($currency_code))), false, $currency_code);
 
-        $comments = 'REFUNDED: ' . $amount . "\n" . $refundNote;
-        zen_update_orders_history($oID, $comments, null, $new_order_status, 0);
+            $comments = 'REFUNDED: ' . $amount . "\n" . $refundNote;
+            zen_update_orders_history($oID, $comments, null, $new_order_status, 0);
 
-        $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED . $amount), 'success');
+            $messageStack->add_session(sprintf(MODULE_PAYMENT_SQUARE_TEXT_REFUND_INITIATED . $amount), 'success');
 
-        return true;
+            return true;
 
         } catch (\SquareConnect\ApiException $e) {
             $errors_object = $e->getResponseBody()->errors;
