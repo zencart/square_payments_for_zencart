@@ -7,10 +7,9 @@
  *
  * REQUIRES PHP 5.4 or newer
  *
- * @package square
- * @copyright Copyright 2003-2020 Zen Cart Development Team
+ * @copyright Copyright 2003-2023 Zen Cart Development Team
  * @license http://www.zen-cart.com/license/2_0.txt GNU Public License V2.0
- * @version $Id: Author: Chris Brown <drbyte@zen-cart.com> Modified 2020-06-22 $
+ * @version $Id: Scott C Wilson 2022 Oct 16 Modified in v1.5.8a $
  */
 
 if (!defined('TABLE_SQUARE_PAYMENTS')) define('TABLE_SQUARE_PAYMENTS', DB_PREFIX . 'square_payments');
@@ -674,7 +673,7 @@ class square extends base
         }
 
         $this->saveAccessToken($response);
-        echo 'Token set. You may now continue configuring the module. <script type="text/javascript">window.close()</script>';
+        echo 'Token set. You may now continue configuring the module. <script>window.close()</script>';
     }
 
     /**
